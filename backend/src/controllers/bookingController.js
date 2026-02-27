@@ -83,10 +83,16 @@ export const getBookingById = async (req, res) => {
 };
 export const getMyBookings = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = Number(req.user.id);
+
+    if (!userId) {
+      return res.status(400).json({ error: "Invalid User ID format" });
+    }
 
     const bookings = await prisma.booking.findMany({
-      where: { userId },
+      where: {
+        userId: userId,
+      },
       include: {
         trip: {
           include: { bus: true },
@@ -100,7 +106,7 @@ export const getMyBookings = async (req, res) => {
   }
 };
 
-let io; // will be set from server.js
+let io;
 
 export const setIO = (ioInstance) => {
   io = ioInstance;
