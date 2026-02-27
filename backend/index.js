@@ -16,15 +16,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  "http://localhost:5173", // dev
-  "https://busbooking-omega.vercel.app", // deployed frontend
-  "https://busbooking-git-main-diar-selmanis-projects.vercel.app", // optional other Vercel deploy
+  "http://localhost:5173",
+  "https://busbooking-omega.vercel.app",
+  "https://busbooking-git-main-diar-selmanis-projects.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow non-browser requests (Postman, etc.)
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -37,18 +37,16 @@ app.use(
 
 app.use(express.json());
 
-app.options("(.*)", cors({ origin: allowedOrigins, credentials: true }));
+// Add a name (like 'any') before the asterisk
+app.options("/:any*", cors({ origin: allowedOrigins, credentials: true }));
 
-// ================= ROUTES =================
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/buses", busRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/auth", authRoutes);
 
-// 🔥 CREATE HTTP SERVER
 const server = http.createServer(app);
 
-// 🔥 SOCKET.IO WITH CORRECT CORS
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -61,7 +59,7 @@ bookingController.setIO(io);
 const seatLocks = {};
 
 io.on("connection", (socket) => {
-  console.log("🟢 Socket connected:", socket.id);
+  console.log(" Socket connected:", socket.id);
 
   socket.on("join-trip", (tripId) => {
     socket.join(`trip-${tripId}`);
@@ -96,7 +94,7 @@ io.on("connection", (socket) => {
         }
       }
     }
-    console.log("🔴 Socket disconnected:", socket.id);
+    console.log(" Socket disconnected:", socket.id);
   });
 });
 
