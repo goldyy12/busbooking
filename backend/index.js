@@ -15,14 +15,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ FRONTEND ORIGINS
 const allowedOrigins = [
   "http://localhost:5173", // dev
   "https://busbooking-omega.vercel.app", // deployed frontend
   "https://busbooking-git-main-diar-selmanis-projects.vercel.app", // optional other Vercel deploy
 ];
 
-// ✅ CORS MIDDLEWARE
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -37,11 +35,9 @@ app.use(
   }),
 );
 
-// ✅ HANDLE JSON
 app.use(express.json());
 
-// ✅ PRE-FLIGHT SUPPORT
-app.options("*", cors({ origin: allowedOrigins, credentials: true }));
+app.options("(.*)", cors({ origin: allowedOrigins, credentials: true }));
 
 // ================= ROUTES =================
 app.use("/api/bookings", bookingRoutes);
@@ -60,11 +56,9 @@ const io = new Server(server, {
   },
 });
 
-// ✅ inject io AFTER it's initialized
 bookingController.setIO(io);
 
-// ================= SOCKET LOGIC =================
-const seatLocks = {}; // { tripId: { seat: socketId } }
+const seatLocks = {};
 
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
@@ -106,7 +100,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// ✅ START SERVER
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
