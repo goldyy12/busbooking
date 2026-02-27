@@ -83,40 +83,29 @@ export const getBookingById = async (req, res) => {
 };
 export const getMyBookings = async (req, res) => {
   try {
-    // 1. Force conversion to Number
-    const userId = Number(req.user?.id);
+    const userId = Number(req.user.id);
 
-    // 2. Guard: If userId is not a valid number (NaN) or is 0, DO NOT QUERY
-    if (isNaN(userId) || userId === 0) {
-      console.error("DEBUG: Invalid User ID detected:", req.user?.id);
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: Invalid user identification" });
+    if (!userId) {
+      return res.status(400).json({ error: "Invalid User ID format" });
     }
 
-    // 3. The Strict Query
     const bookings = await prisma.booking.findMany({
       where: {
-        userId: userId, // This must be a clean Integer
+        userId: userId,
       },
       include: {
         trip: {
           include: { bus: true },
         },
       },
-      orderBy: {
-        createdAt: "desc", // Professional touch: newest bookings first
-      },
     });
 
     res.json(bookings);
   } catch (error) {
-    console.error("Prisma Error:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to retrieve your specific bookings" });
+    res.status(500).json({ error: error.message });
   }
 };
+
 let io;
 
 export const setIO = (ioInstance) => {
