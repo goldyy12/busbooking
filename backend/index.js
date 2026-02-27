@@ -37,9 +37,6 @@ app.use(
 
 app.use(express.json());
 
-// Add a name (like 'any') before the asterisk
-app.options("/:any*", cors({ origin: allowedOrigins, credentials: true }));
-
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/buses", busRoutes);
 app.use("/api/trips", tripRoutes);
