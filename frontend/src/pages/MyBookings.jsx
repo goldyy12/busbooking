@@ -12,7 +12,20 @@ const MyBookings = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/bookings/my");
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.error("No token found, please login first.");
+        navigate("/login");
+        return;
+      }
+
+      const res = await api.get("/bookings/my", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setBookings(res.data);
     } catch (err) {
       console.error("Failed to fetch bookings:", err);
@@ -20,7 +33,6 @@ const MyBookings = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchBookings();
   }, []);
