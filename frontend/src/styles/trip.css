@@ -1,0 +1,153 @@
+.trip-container {
+  padding: 30px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 60px);
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.seat {
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.seat.available {
+  background: #e5e7eb;
+}
+
+.seat.selected {
+  background: #22c55e;
+  color: white;
+}
+
+.seat.booked {
+  background: #ef4444;
+  color: white;
+  cursor: not-allowed;
+}
+
+.seat.locked {
+  background: #f59e0b;
+  color: white;
+  cursor: not-allowed;
+}
+
+.book-btn {
+  padding: 12px 20px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.book-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+.main-container {
+  background: #f3f4f6;
+  min-height: 100vh;
+  padding: 40px;
+  display: flex;
+  flex-direction: row; /* Horizontal layout */
+  justify-content: center;
+  gap: 50px; /* Space between the left info and right seats */
+  align-items: flex-start;
+}
+
+/* Left Column Styling */
+.ticket-info-section {
+  flex: 0 0 300px; /* Stay at 300px wide, don't grow or shrink */
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Right Column Styling */
+.seat-selection-section {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.seat-grid {
+  display: grid;
+  /* Keep your 4-column layout */
+  grid-template-columns: repeat(4, 60px);
+  gap: 12px;
+}
+
+/* Mobile: Stack them vertically when the screen is too small */
+@media (max-width: 800px) {
+  .main-container {
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .ticket-info-section {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
+  }
+}
+/* Container for the info lines */
+.summary-details {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between lines */
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #4b5563; /* Subtle gray */
+}
+
+.summary-item span:last-child {
+  font-weight: 600;
+  color: #1f2937; /* Darker for the actual values */
+}
+
+/* Specific styling for the price to make it pop */
+.total-price-row {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-price-label {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.total-price-value {
+  font-size: 22px;
+  color: #4f46e5; /* Primary blue color */
+  font-weight: 800;
+}
+
+.confirm-btn-wrapper {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.book-btn {
+  width: 100%; /* Make button full width for a modern look */
+}
