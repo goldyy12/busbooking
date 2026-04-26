@@ -145,7 +145,7 @@ async function main() {
   });
 
   console.log(
-    `✅ Seeded ${users.length} users, ${buses.length} buses, ${trips.length} trips.`,
+    `✅ Seeded ${users.length} and users, ${buses.length} buses, ${trips.length} trips.`,
   );
 }
 
