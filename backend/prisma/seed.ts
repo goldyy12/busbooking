@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
-import bcrypt from "bcryptjs";
 
+import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
@@ -13,15 +13,32 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+// 🧠 Helpers for dynamic dates
+const now = new Date();
+
+function setTime(baseDate, hours, minutes) {
+  const d = new Date(baseDate);
+  d.setHours(hours, minutes, 0, 0); // use setUTCHours if needed
+  return d;
+}
+
+function addDays(baseDate, days) {
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
 async function main() {
-  console.log("🚀 Starting seed with today's date (April 9, 2026)...");
+  console.log("🚀 Starting seed with dynamic dates...");
 
   // 1️⃣ Clear existing data
   await prisma.booking.deleteMany();
   await prisma.trip.deleteMany();
   await prisma.bus.deleteMany();
   await prisma.user.deleteMany();
+
   const hashedPassword = await bcrypt.hash("123456", 10);
+
   // 2️⃣ Create Users
   const users = await Promise.all([
     prisma.user.create({
@@ -55,45 +72,55 @@ async function main() {
     prisma.bus.create({ data: { busNumber: "KOS-03-789", totalSeats: 50 } }),
   ]);
 
-  // 4️⃣ Create Trips (Updated for Today & Tomorrow)
+  // 4️⃣ Create Trips (dynamic: today + tomorrow)
+  const todayAfternoon = setTime(now, 14, 30);
+  const todayEvening = setTime(now, 20, 0);
+
+  // Prevent past trips if seed runs late
+  if (todayAfternoon < now) {
+    todayAfternoon.setDate(todayAfternoon.getDate() + 1);
+  }
+  if (todayEvening < now) {
+    todayEvening.setDate(todayEvening.getDate() + 1);
+  }
+
   const trips = await Promise.all([
-    // Trip happening RIGHT NOW / Today
+    // Today (or next valid day)
     prisma.trip.create({
       data: {
         from: "Prishtina",
         to: "Ferizaj",
         price: 5,
-        date: new Date("2026-04-09T14:30:00Z"),
+        date: todayAfternoon,
         busId: buses[0].id,
       },
     }),
-    // Evening trip today
     prisma.trip.create({
       data: {
         from: "Ferizaj",
         to: "Prishtina",
         price: 5,
-        date: new Date("2026-04-09T20:00:00Z"),
+        date: todayEvening,
         busId: buses[0].id,
       },
     }),
-    // Tomorrow morning
+
+    // Tomorrow
     prisma.trip.create({
       data: {
         from: "Prishtina",
         to: "Prizren",
         price: 10,
-        date: new Date("2026-04-10T08:00:00Z"),
+        date: setTime(addDays(now, 1), 8, 0),
         busId: buses[2].id,
       },
     }),
-    // Tomorrow evening
     prisma.trip.create({
       data: {
         from: "Prizren",
         to: "Prishtina",
         price: 10,
-        date: new Date("2026-04-10T17:30:00Z"),
+        date: setTime(addDays(now, 1), 17, 30),
         busId: buses[2].id,
       },
     }),

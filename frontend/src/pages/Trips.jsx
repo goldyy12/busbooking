@@ -6,7 +6,11 @@ const TripsPage = () => {
   const [trips, setTrips] = useState([]);
 
   useEffect(() => {
-    api.get("/trips").then((res) => setTrips(res.data));
+    api.get("/trips").then((res) => {
+      setTrips(res.data);
+      console.log(res.data);
+      console.error("TEST ERROR");
+    });
   }, []);
 
   return (
