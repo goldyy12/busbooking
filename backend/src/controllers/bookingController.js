@@ -11,15 +11,12 @@ export const getAllBookings = async (req, res) => {
         user: true,
       },
     });
-    res.json(bookings);
+    res.status(200).json(bookings);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * CREATE BOOKING (USER)
- */
 export const createBooking = async (req, res) => {
   try {
     const { tripId, seats } = req.body;
@@ -48,7 +45,6 @@ export const createBooking = async (req, res) => {
       data: { tripId, userId, seats: requestedSeats, status: "CONFIRMED" },
     });
 
-    // 🔥 Broadcast to all sockets in this trip room
     if (io) {
       io.to(`trip-${tripId}`).emit("seat-booked", { seats: requestedSeats });
     }
@@ -58,9 +54,7 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-/**
- * GET BOOKING BY ID
- */
+
 export const getBookingById = async (req, res) => {
   try {
     const bookingId = parseInt(req.params.id);
@@ -76,7 +70,7 @@ export const getBookingById = async (req, res) => {
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    res.json(booking);
+    res.status(200).json(booking);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -8,8 +8,6 @@ const TripsPage = () => {
   useEffect(() => {
     api.get("/trips").then((res) => {
       setTrips(res.data);
-      console.log(res.data);
-      console.error("TEST ERROR");
     });
   }, []);
 
