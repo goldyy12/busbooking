@@ -31,7 +31,7 @@ The application supports:
 - React
 - React Router
 - Axios
-- CSS / TailwindCSS
+- CSS
 
 ## Backend
 - Node.js
@@ -150,16 +150,7 @@ artillery run load-test.yml
 
 ---
 
-# Future Improvements
 
-- Online payments
-- Email notifications
-- Admin dashboard
-- QR code tickets
-- Mobile application
-- Kubernetes deployment
-
----
 
 # Author
 
