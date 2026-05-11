@@ -1,235 +1,168 @@
-Bus Booking System
-A full-stack real-time bus ticket booking platform built with React, Node.js, PostgreSQL, Prisma, and Socket.IO. The application supports live seat updates, secure authentication, and scalable backend architecture using Docker.
-Features
+# Bus Booking System
 
+A full-stack real-time bus ticket booking platform built with React, Node.js, PostgreSQL, Prisma, and Socket.IO.
 
-Real-time seat booking with Socket.IO
+The application supports:
+- Live seat updates
+- Secure authentication
+- Real-time booking synchronization
+- Dockerized deployment
 
+---
 
-JWT authentication & protected routes
+# Features
 
+- Real-time seat booking with Socket.IO
+- JWT authentication & protected routes
+- Prevents double bookings
+- PostgreSQL relational database
+- Prisma ORM integration
+- Dockerized development environment
+- REST API architecture
+- Unit testing support
+- Redis caching support
+- Responsive frontend UI
 
-Prevents double bookings
+---
 
+# Tech Stack
 
-PostgreSQL relational database
+## Frontend
+- React
+- React Router
+- Axios
+- CSS / TailwindCSS
 
+## Backend
+- Node.js
+- Express.js
+- Prisma ORM
+- PostgreSQL
+- Socket.IO
+- JWT Authentication
+- bcrypt
 
-Prisma ORM integration
+## DevOps & Tools
+- Docker
+- Docker Compose
+- Redis
+- Jest / Vitest
+- Artillery
 
+---
 
-Dockerized development environment
+# Installation
 
+## Clone the repository
 
-REST API architecture
+```bash
+git clone https://github.com/goldyy12/busbooking.git
+cd busbooking
+```
 
+---
 
-Unit testing support
+# Run with Docker
 
-
-Redis caching support (optional)
-
-
-Responsive frontend UI
-
-
-Tech Stack
-Frontend
-
-
-React
-
-
-React Router
-
-
-Axios
-
-
-CSS / Tailwind (if used)
-
-
-Backend
-
-
-Node.js
-
-
-Express.js
-
-
-Prisma ORM
-
-
-PostgreSQL
-
-
-Socket.IO
-
-
-JWT Authentication
-
-
-bcrypt
-
-
-DevOps & Tools
-
-
-Docker
-
-
-Docker Compose
-
-
-Redis
-
-
-Jest / Vitest
-
-
-Artillery
-
-
-
-Architecture
-Frontend (React)       │       ▼Backend API (Node.js + Express)       │ ┌─────┴─────┐ ▼           ▼PostgreSQL   Redis       │       ▼Socket.IO Real-Time Updates
-
-Getting Started
-Prerequisites
-Make sure you have installed:
-
-
-Docker
-
-
-Docker Compose
-
-
-Node.js (optional if running without Docker)
-
-
-
-Installation
-1. Clone the repository
-git clone https://github.com/yourusername/bus-booking-system.gitcd bus-booking-system
-
-2. Start the application with Docker
+```bash
 docker compose up --build
-This will start:
+```
 
+This starts:
+- Frontend
+- Backend
+- PostgreSQL
+- Redis
 
-Frontend
+---
 
+# Environment Variables
 
-Backend
+Create a `.env` file inside the backend folder:
 
+```env
+DATABASE_URL=postgresql://user:password@postgres:5432/bus_booking
+JWT_SECRET=your_secret_key
+REDIS_URL=redis://redis:6379
+PORT=3000
+```
 
-PostgreSQL
+---
 
+# Prisma Setup
 
-Redis
+Run migrations:
 
-
-
-Environment Variables
-Create a .env file inside the backend folder:
-DATABASE_URL=postgresql://user:password@postgres:5432/bus_bookingJWT_SECRET=your_secret_keyREDIS_URL=redis://redis:6379PORT=3000
-
-Database Setup
-Run Prisma migrations:
+```bash
 docker exec -it busbooking-main-backend-1 npx prisma migrate deploy
-Seed the database:
+```
+
+Seed database:
+
+```bash
 docker exec -it busbooking-main-backend-1 npx prisma db seed
+```
 
-Running Without Docker
-Backend
-cd backendnpm installnpm run dev
-Frontend
-cd frontendnpm installnpm start
+---
 
-API Features
+# Running Without Docker
 
+## Backend
 
-User authentication
+```bash
+cd backend
+npm install
+npm run dev
+```
 
+## Frontend
 
-Bus management
+```bash
+cd frontend
+npm install
+npm start
+```
 
+---
 
-Route management
+# Real-Time Features
 
-
-Booking system
-
-
-Real-time seat synchronization
-
-
-Booking history
-
-
-
-Real-Time Booking
 Socket.IO is used to:
+- Sync bookings instantly
+- Update seat availability live
+- Prevent double booking conflicts
 
+---
 
-Update seat availability instantly
+# Testing
 
-
-Prevent double booking conflicts
-
-
-Sync bookings across multiple users
-
-
-
-Testing
 Run backend tests:
+
+```bash
 npm test
-Performance testing with Artillery:
+```
+
+Performance testing:
+
+```bash
 artillery run load-test.yml
+```
 
-Docker Services
-Example services included in docker-compose.yml:
-services:  frontend:    build: ./frontend  backend:    build: ./backend  postgres:    image: postgres:latest  redis:    image: redis:latest
+---
 
-Future Improvements
+# Future Improvements
 
+- Online payments
+- Email notifications
+- Admin dashboard
+- QR code tickets
+- Mobile application
+- Kubernetes deployment
 
-Payment integration
+---
 
+# Author
 
-Email notifications
-
-
-Admin analytics dashboard
-
-
-Ticket QR codes
-
-
-Mobile application
-
-
-Kubernetes deployment
-
-
-
-Screenshots
-Add screenshots here:
-![Home Page](./screenshots/home.png)
-
-Author
 Diar Selmani
 
-
-GitHub: replace-with-your-link
-
-
-LinkedIn: replace-with-your-link
-
-
-
-License
-This project is licensed under the MIT License.
+- GitHub: https://github.com/goldyy12
