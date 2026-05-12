@@ -13,7 +13,6 @@ export const protect = (req, res, next) => {
       role: decoded.role,
     };
 
-    console.log("🟢 Middleware Decoded User:", req.user);
     next();
   });
 };

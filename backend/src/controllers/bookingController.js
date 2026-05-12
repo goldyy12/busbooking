@@ -13,6 +13,7 @@ export const getAllBookings = async (req, res) => {
     });
     res.status(200).json(bookings);
   } catch (error) {
+    console.error("Get All Bookings error:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -51,6 +52,7 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json(booking);
   } catch (error) {
+    console.error("Create Booking error:", error.message);
     res.status(500).json({ error: error.message });
   }
 };

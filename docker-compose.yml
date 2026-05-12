@@ -3,6 +3,7 @@ services:
     build: ./backend
     ports:
       - 5000:5000
+      - 51212:51212 # For Artillery load testing
     env_file:
       - ./backend/.env
 
