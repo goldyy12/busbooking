@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -9,13 +9,10 @@ COPY package*.json ./
 # This fixes the "command sh -c prisma generate" error
 COPY prisma ./prisma/
 
-# 3. Now run install
 RUN npm install
 
-# 4. Copy the rest of your code
 COPY . .
 
-# 5. Generate the client for the container's OS
 RUN npx prisma generate
 
 EXPOSE 8080
