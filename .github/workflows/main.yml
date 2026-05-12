@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    default:
+      run:
+        working-directory: ./backend
 
     steps:
       - name: Checkout code
