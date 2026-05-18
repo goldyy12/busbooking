@@ -1,10 +1,7 @@
-process.env.JWT_SECRET = "test-secret";
-
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { register, login } from "./authController";
 import prisma from "../../db.js";
 
-// This "mocks" the database so we don't need a real one running
 vi.mock("../../db.js", () => ({
   default: {
     user: {
@@ -15,7 +12,6 @@ vi.mock("../../db.js", () => ({
 }));
 
 describe("Auth Controller Tests", () => {
-  // Reset mocks before each test so they don't interfere with each other
   beforeEach(() => {
     vi.clearAllMocks();
   });

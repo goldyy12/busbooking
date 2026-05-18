@@ -6,14 +6,13 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-console.log("DB URL:", process.env.DATABASE_URL);
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// 🧠 Helpers for dynamic dates
+
 const now = new Date();
 
 function setTime(baseDate, hours, minutes) {
