@@ -8,9 +8,9 @@ scenarios:
   - name: "Admin Bus Creation Test"
     flow:
       - post:
-          url: "/api/buses" # Added /api/ based on your last message
+          url: "/api/buses"
           headers:
-            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMyLCJuYW1lIjoiZ29sZCIsImVtYWlsIjoiZGlhcnNlbG1hbmkxMEBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3Nzg1OTAyNTcsImV4cCI6MTc3ODU5Mzg1N30.Z8tiJG4rK6wRzzyckUwreAvcVPjAAS-gs8X77W1ZptM"
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMyLCJuYW1lIjoiZ29sZCIsImVtYWlsIjoiZGlhcnNlbG1hbmkxMEBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODEyMDk3MzgsImV4cCI6MTc4MTIxMzMzOH0.tB0CA7B3Ydlk_n3CC73T0MbdvWe-0928Y_lc76pejDg"
           json:
-            busNumber: "BUS-{{ $randomString() }}" # Use random strings to avoid duplicate key errors
+            busNumber: "BUS-{{ $randomString() }}"
             capacity: 50

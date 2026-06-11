@@ -7,7 +7,7 @@ import {
 import prisma from "../../db.js";
 import { create } from "node:domain";
 
-// This "mocks" the database so we don't need a real one running
+
 vi.mock("../../db.js", () => ({
   default: {
     booking: {

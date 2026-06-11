@@ -6,18 +6,16 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-
 const now = new Date();
 
 function setTime(baseDate, hours, minutes) {
   const d = new Date(baseDate);
-  d.setHours(hours, minutes, 0, 0); // use setUTCHours if needed
+  d.setHours(hours, minutes, 0, 0);
   return d;
 }
 
@@ -28,18 +26,20 @@ function addDays(baseDate, days) {
 }
 
 async function main() {
-  console.log("🚀 Starting seed with dynamic dates...");
+  console.log("🚀 Starting clean relational seed with dynamic dates...");
 
-  // 1️⃣ Clear existing data
-  await prisma.booking.deleteMany();
-  await prisma.trip.deleteMany();
-  await prisma.bus.deleteMany();
-  await prisma.user.deleteMany();
+  // 1️⃣ Safe Cascading Truncation Block via Interactive Transaction
+  await prisma.$transaction([
+    prisma.booking.deleteMany(),
+    prisma.trip.deleteMany(),
+    prisma.bus.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
   const hashedPassword = await bcrypt.hash("123456", 10);
 
-  // 2️⃣ Create Users
-  const users = await Promise.all([
+  // 2️⃣ Seeding Core Users
+  const [passengerArben, passengerElira, systemAdmin] = await Promise.all([
     prisma.user.create({
       data: {
         name: "Arben Krasniqi",
@@ -64,18 +64,17 @@ async function main() {
     }),
   ]);
 
-  // 3️⃣ Create Buses
-  const buses = await Promise.all([
+  // 3️⃣ Seeding Core Fleet (Buses)
+  const [standardBus, miniBus, expressBus] = await Promise.all([
     prisma.bus.create({ data: { busNumber: "KOS-01-123", totalSeats: 45 } }),
     prisma.bus.create({ data: { busNumber: "KOS-02-456", totalSeats: 20 } }),
     prisma.bus.create({ data: { busNumber: "KOS-03-789", totalSeats: 50 } }),
   ]);
 
-  // 4️⃣ Create Trips (dynamic: today + tomorrow)
+  // 4️⃣ Calculating Dynamic Departure Windows
   const todayAfternoon = setTime(now, 14, 30);
   const todayEvening = setTime(now, 20, 0);
 
-  // Prevent past trips if seed runs late
   if (todayAfternoon < now) {
     todayAfternoon.setDate(todayAfternoon.getDate() + 1);
   }
@@ -83,15 +82,20 @@ async function main() {
     todayEvening.setDate(todayEvening.getDate() + 1);
   }
 
-  const trips = await Promise.all([
-    // Today (or next valid day)
+  // 5️⃣ Seeding Trans-Regional Active Trips
+  const [
+    prishtinaToFerizaj,
+    ferizajToPrishtina,
+    prishtinaToPrizren,
+    prizrenToPrishtina,
+  ] = await Promise.all([
     prisma.trip.create({
       data: {
         from: "Prishtina",
         to: "Ferizaj",
         price: 5,
         date: todayAfternoon,
-        busId: buses[0].id,
+        busId: standardBus.id,
       },
     }),
     prisma.trip.create({
@@ -100,18 +104,16 @@ async function main() {
         to: "Prishtina",
         price: 5,
         date: todayEvening,
-        busId: buses[0].id,
+        busId: standardBus.id,
       },
     }),
-
-    // Tomorrow
     prisma.trip.create({
       data: {
         from: "Prishtina",
         to: "Prizren",
         price: 10,
         date: setTime(addDays(now, 1), 8, 0),
-        busId: buses[2].id,
+        busId: expressBus.id,
       },
     }),
     prisma.trip.create({
@@ -120,23 +122,23 @@ async function main() {
         to: "Prishtina",
         price: 10,
         date: setTime(addDays(now, 1), 17, 30),
-        busId: buses[2].id,
+        busId: expressBus.id,
       },
     }),
   ]);
 
-  // 5️⃣ Create Bookings
+  // 6️⃣ Seeding Concurrency-Safe Active Bookings
   await prisma.booking.createMany({
     data: [
       {
-        userId: users[0].id,
-        tripId: trips[0].id,
+        userId: passengerArben.id,
+        tripId: prishtinaToFerizaj.id,
         seats: [1, 2],
         status: "CONFIRMED",
       },
       {
-        userId: users[1].id,
-        tripId: trips[1].id,
+        userId: passengerElira.id,
+        tripId: ferizajToPrishtina.id,
         seats: [5],
         status: "PENDING",
       },
@@ -144,13 +146,17 @@ async function main() {
   });
 
   console.log(
-    `✅ Seeded ${users.length} and users, ${buses.length} buses, ${trips.length} trips.`,
+    `✅ Database successfully seeded:\n` +
+      `   - Users created: 3\n` +
+      `   - Buses provisioned: 3\n` +
+      `   - Inter-city trips scheduled: 4\n` +
+      `   - Mock bookings assigned: 2`,
   );
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed failed:", e);
+    console.error("❌ Critical database seed failure occurred:", e);
     process.exit(1);
   })
   .finally(async () => {

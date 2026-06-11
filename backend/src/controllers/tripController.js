@@ -23,7 +23,6 @@ export const createTrip = async (req, res) => {
 
     res.status(201).json(trip);
   } catch (error) {
-    // 2. Logging the error to your terminal is helpful for debugging
     console.error("Error creating trip:", error);
     res.status(500).json({ error: error.message });
   }

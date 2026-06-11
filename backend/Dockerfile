@@ -1,20 +1,14 @@
-FROM node:24-alpine
-
+FROM node:20-slim
 WORKDIR /app
 
-# 1. Copy package files
-COPY package*.json ./
+RUN apt-get update -y && apt-get install -y openssl
 
-# 2. COPY THE PRISMA FOLDER NOW 
-# This fixes the "command sh -c prisma generate" error
+COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm install
-
-COPY . .
-
+RUN npm install --omit=dev --no-audit --no-fund --ignore-scripts
 RUN npx prisma generate
 
+COPY . .
 EXPOSE 8080
-
 CMD ["npm", "start"]
