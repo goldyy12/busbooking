@@ -33,13 +33,15 @@ const TripDetails = () => {
       setLockedSeats((prev) => prev.filter((s) => s !== seat)),
     );
 
-    socket.on("seat-booked", ({ seats }) => {
+    socket.on("seat-booked", ({ seats, allBookedSeats }) => {
       console.log("Received seat-booked event with seats:", seats);
+      console.log("All booked seats from backend:", allBookedSeats);
+      
       setTrip((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          bookedSeats: Array.from(new Set([...(prev.bookedSeats || []), ...seats])),
+          bookedSeats: allBookedSeats || Array.from(new Set([...(prev.bookedSeats || []), ...seats])),
         };
       });
 
@@ -84,9 +86,6 @@ const TripDetails = () => {
       );
 
       alert("Booking confirmed!");
-
-      const res = await api.get(`/trips/${id}`);
-      setTrip(res.data);
       setSelectedSeats([]);
     } catch (error) {
       console.error("Booking failed:", error);
