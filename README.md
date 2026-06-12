@@ -20,7 +20,6 @@ The application supports:
 - Dockerized development environment
 - REST API architecture
 - Unit testing support
-- Redis caching support
 - Responsive frontend UI
 
 ---
@@ -45,7 +44,6 @@ The application supports:
 ## DevOps & Tools
 - Docker
 - Docker Compose
-- Redis
 - Jest / Vitest
 - Artillery
 
@@ -72,7 +70,6 @@ This starts:
 - Frontend
 - Backend
 - PostgreSQL
-- Redis
 
 ---
 
