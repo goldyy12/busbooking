@@ -13,7 +13,6 @@ const HomePage = () => {
     "Mitrovica",
   ];
 
-  // 1. All State Hooks first
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -24,7 +23,6 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
-  // 2. Logic derived from state
   const showFromDropdown = fromSuggestions.length > 0 && !cities.includes(from);
   const showToDropdown = toSuggestions.length > 0 && !cities.includes(to);
 
@@ -52,7 +50,6 @@ const HomePage = () => {
       <h1>Search Bus Trips</h1>
 
       <form onSubmit={handleSearch} className="search-form">
-        {/* FROM INPUT */}
         <div style={{ position: "relative" }}>
           <input
             placeholder="From"

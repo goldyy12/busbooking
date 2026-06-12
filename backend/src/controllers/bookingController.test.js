@@ -5,21 +5,31 @@ import {
   getAllBookings,
 } from "./bookingController";
 import prisma from "../../db.js";
-import { create } from "node:domain";
 
+// Definojmë funksionet mock për operacionet e zakonshme dhe ato brenda transaksionit
+const mockBookingFindMany = vi.fn();
+const mockBookingCreate = vi.fn();
+const mockBookingFindUnique = vi.fn();
+const mockTripFindUnique = vi.fn();
 
 vi.mock("../../db.js", () => ({
   default: {
+    // Shtojmë mock-un për transaksionin interaktiv
+    $transaction: vi.fn(async (callback) => {
+      // Kalojmë një objekt "tx" artificial që përdor të njëjtat funksione mock
+      return await callback({
+        booking: {
+          findMany: mockBookingFindMany,
+          create: mockBookingCreate,
+        },
+      });
+    }),
     booking: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      findMany: vi.fn(),
+      findUnique: mockBookingFindUnique,
+      findMany: mockBookingFindMany, // Për rastet jashtë transaksionit si getAllBookings
     },
     trip: {
-      findUnique: vi.fn(),
-    },
-    user: {
-      findUnique: vi.fn(),
+      findUnique: mockTripFindUnique,
     },
   },
 }));
@@ -30,6 +40,7 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should return 404 if trip is not found", async () => {
+    mockTripFindUnique.mockResolvedValue(null);
     const req = {
       body: { tripId: 999, seats: [1, 2] },
       user: { userId: 1 },
@@ -43,9 +54,12 @@ describe("Booking Controller Tests", () => {
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ error: "Trip not found" });
   });
-  it("should return 400 if seats are already booked", async () => {
-    prisma.trip.findUnique.mockResolvedValue({ id: 1 });
-    prisma.booking.findMany.mockResolvedValue([{ seats: [1, 2] }]);
+
+  it("should return 409 if seats are already booked inside transaction", async () => {
+    mockTripFindUnique.mockResolvedValue({ id: 1 });
+    // Simulojmë që ulëset 1 dhe 2 janë tashmë të zëna
+    mockBookingFindMany.mockResolvedValue([{ seats: [1, 2] }]);
+
     const req = {
       body: { tripId: 1, seats: [1, 2] },
       user: { userId: 1 },
@@ -56,21 +70,24 @@ describe("Booking Controller Tests", () => {
     };
     await createBooking(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    // VREJTJE: Kodi i ri kthen 409 Conflict për ulëset e zëna!
+    expect(res.status).toHaveBeenCalledWith(409);
     expect(res.json).toHaveBeenCalledWith({
       error: "One or more seats already booked",
     });
   });
-  it("should create a booking successfully", async () => {
-    prisma.trip.findUnique.mockResolvedValue({ id: 1 });
-    prisma.booking.findMany.mockResolvedValue([]);
-    prisma.booking.create.mockResolvedValue({
+
+  it("should create a booking successfully inside transaction", async () => {
+    mockTripFindUnique.mockResolvedValue({ id: 1 });
+    mockBookingFindMany.mockResolvedValue([]); // Asnjë ulëse e zënë
+    mockBookingCreate.mockResolvedValue({
       id: 123,
       tripId: 1,
       userId: 1,
       seats: [3, 4],
       status: "CONFIRMED",
     });
+
     const req = {
       body: { tripId: 1, seats: [3, 4] },
       user: { userId: 1 },
@@ -90,8 +107,9 @@ describe("Booking Controller Tests", () => {
       status: "CONFIRMED",
     });
   });
+
   it("should return booking by ID", async () => {
-    prisma.booking.findUnique.mockResolvedValue({
+    mockBookingFindUnique.mockResolvedValue({
       id: 123,
       tripId: 1,
       userId: 1,
@@ -116,8 +134,9 @@ describe("Booking Controller Tests", () => {
       status: "CONFIRMED",
     });
   });
+
   it("should return 404 if booking not found", async () => {
-    prisma.booking.findUnique.mockResolvedValue(null);
+    mockBookingFindUnique.mockResolvedValue(null);
     const req = {
       params: { id: 999 },
     };
@@ -130,8 +149,9 @@ describe("Booking Controller Tests", () => {
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ error: "Booking not found" });
   });
+
   it("should return all bookings", async () => {
-    prisma.booking.findMany.mockResolvedValue([
+    mockBookingFindMany.mockResolvedValue([
       {
         id: 123,
         tripId: 1,
@@ -150,11 +170,11 @@ describe("Booking Controller Tests", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith([
       {
+        id: 123,
         tripId: 1,
         userId: 1,
         trip: { id: 123 },
         user: { id: 123 },
-        id: 123,
       },
     ]);
   });
