@@ -1,5 +1,12 @@
 import prisma from "../../db.js";
 
+// 1. Deklarojmë instancën e IO në majë të skedarit që të jetë e disponueshme kudo
+let io;
+
+export const setIO = (ioInstance) => {
+  io = ioInstance;
+};
+
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
@@ -47,7 +54,9 @@ export const createBooking = async (req, res) => {
       });
     });
 
+    // Tani që 'io' është lart, kjo do të ekzekutohet me siguri 100%
     if (io) {
+      console.log(`Emitting seat-booked for trip-${tripId}:`, requestedSeats);
       io.to(`trip-${tripId}`).emit("seat-booked", {
         seats: requestedSeats,
       });
@@ -83,6 +92,7 @@ export const getBookingById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 export const getMyBookings = async (req, res) => {
   try {
     const userId = Number(req.user.id);
@@ -106,10 +116,4 @@ export const getMyBookings = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};
-
-let io;
-
-export const setIO = (ioInstance) => {
-  io = ioInstance;
 };
