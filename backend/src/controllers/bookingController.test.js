@@ -14,9 +14,7 @@ const mockTripFindUnique = vi.fn();
 
 vi.mock("../../db.js", () => ({
   default: {
-    // Shtojmë mock-un për transaksionin interaktiv
     $transaction: vi.fn(async (callback) => {
-      // Kalojmë një objekt "tx" artificial që përdor të njëjtat funksione mock
       return await callback({
         booking: {
           findMany: mockBookingFindMany,
@@ -26,7 +24,7 @@ vi.mock("../../db.js", () => ({
     }),
     booking: {
       findUnique: mockBookingFindUnique,
-      findMany: mockBookingFindMany, // Për rastet jashtë transaksionit si getAllBookings
+      findMany: mockBookingFindMany,
     },
     trip: {
       findUnique: mockTripFindUnique,
@@ -57,7 +55,7 @@ describe("Booking Controller Tests", () => {
 
   it("should return 409 if seats are already booked inside transaction", async () => {
     mockTripFindUnique.mockResolvedValue({ id: 1 });
-    // Simulojmë që ulëset 1 dhe 2 janë tashmë të zëna
+
     mockBookingFindMany.mockResolvedValue([{ seats: [1, 2] }]);
 
     const req = {

@@ -1,8 +1,5 @@
 import prisma from "../../db.js";
 
-/**
- * GET ALL BOOKINGS (ADMIN)
- */
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
