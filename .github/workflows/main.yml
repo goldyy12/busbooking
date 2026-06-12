@@ -52,17 +52,13 @@ jobs:
           echo "JWT_SECRET=test-secret-key" >> .env
           echo "PORT=5000" >> .env
 
-          # E kopjojmë skedarin .env edhe brenda folderit prisma që ORM ta lexojë pa asnjë dështim
-          mkdir -p prisma
-          cp .env prisma/.env
-
       - name: Setup Database
+        env:
+          # Kjo e zgjidh gabimin! Ia kalojmë vlerën direkt procesit të Prismës në memorje
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/busbooking_test
         run: |
           npx prisma migrate deploy
           npx prisma generate
-        env:
-          # Kalojmë variablën direkt edhe si variabël mjedisi në procesin e GitHub Actions
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/busbooking_test
 
       - name: Run Vitest
         run: npm run test:run
