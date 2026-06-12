@@ -8,11 +8,14 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  npm_config_fetch_timeout: 120000
+  npm_config_fetch_retry_mintimeout: 20000
+  npm_config_fetch_retry_maxtimeout: 120000
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15 # Add overall timeout
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ./backend
@@ -42,9 +45,12 @@ jobs:
           cache: "npm"
           cache-dependency-path: "./backend/package-lock.json"
 
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit # Use npm ci instead of npm install
-        timeout-minutes: 10
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies with retry
+        run: npm ci --prefer-offline --no-audit --legacy-peer-deps || npm ci --prefer-offline --no-audit --legacy-peer-deps
+        timeout-minutes: 15
 
       - name: Create .env file
         run: |
