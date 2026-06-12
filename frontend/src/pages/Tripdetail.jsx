@@ -34,11 +34,12 @@ const TripDetails = () => {
     );
 
     socket.on("seat-booked", ({ seats }) => {
+      console.log("Received seat-booked event with seats:", seats);
       setTrip((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          bookedSeats: [...(prev.bookedSeats || []), ...seats],
+          bookedSeats: Array.from(new Set([...(prev.bookedSeats || []), ...seats])),
         };
       });
 
@@ -46,11 +47,11 @@ const TripDetails = () => {
     });
 
     return () => {
-      socket.disconnect();
       socket.off("sync-locked-seats");
       socket.off("seat-locked");
       socket.off("seat-unlocked");
       socket.off("seat-booked");
+      socket.disconnect();
     };
   }, [id]);
 
