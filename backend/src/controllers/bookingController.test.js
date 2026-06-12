@@ -4,33 +4,35 @@ import {
   getBookingById,
   getAllBookings,
 } from "./bookingController";
-import prisma from "../../db.js";
 
-// Definojmë funksionet mock për operacionet e zakonshme dhe ato brenda transaksionit
+// 1. Definojmë funksionet mock me prefiksin e saktë 'mock' që Vitest t'i lejojë gjatë hoisting
 const mockBookingFindMany = vi.fn();
 const mockBookingCreate = vi.fn();
 const mockBookingFindUnique = vi.fn();
 const mockTripFindUnique = vi.fn();
 
-vi.mock("../../db.js", () => ({
-  default: {
-    $transaction: vi.fn(async (callback) => {
-      return await callback({
-        booking: {
-          findMany: mockBookingFindMany,
-          create: mockBookingCreate,
-        },
-      });
-    }),
-    booking: {
-      findUnique: mockBookingFindUnique,
-      findMany: mockBookingFindMany,
+// 2. Bëjmë mock-un e modulit db.js
+vi.mock("../../db.js", () => {
+  return {
+    default: {
+      $transaction: vi.fn(async (callback) => {
+        return await callback({
+          booking: {
+            findMany: mockBookingFindMany,
+            create: mockBookingCreate,
+          },
+        });
+      }),
+      booking: {
+        findUnique: mockBookingFindUnique,
+        findMany: mockBookingFindMany,
+      },
+      trip: {
+        findUnique: mockTripFindUnique,
+      },
     },
-    trip: {
-      findUnique: mockTripFindUnique,
-    },
-  },
-}));
+  };
+});
 
 describe("Booking Controller Tests", () => {
   beforeEach(() => {
@@ -55,7 +57,6 @@ describe("Booking Controller Tests", () => {
 
   it("should return 409 if seats are already booked inside transaction", async () => {
     mockTripFindUnique.mockResolvedValue({ id: 1 });
-
     mockBookingFindMany.mockResolvedValue([{ seats: [1, 2] }]);
 
     const req = {
@@ -68,7 +69,6 @@ describe("Booking Controller Tests", () => {
     };
     await createBooking(req, res);
 
-    // VREJTJE: Kodi i ri kthen 409 Conflict për ulëset e zëna!
     expect(res.status).toHaveBeenCalledWith(409);
     expect(res.json).toHaveBeenCalledWith({
       error: "One or more seats already booked",
@@ -77,7 +77,7 @@ describe("Booking Controller Tests", () => {
 
   it("should create a booking successfully inside transaction", async () => {
     mockTripFindUnique.mockResolvedValue({ id: 1 });
-    mockBookingFindMany.mockResolvedValue([]); // Asnjë ulëse e zënë
+    mockBookingFindMany.mockResolvedValue([]);
     mockBookingCreate.mockResolvedValue({
       id: 123,
       tripId: 1,
