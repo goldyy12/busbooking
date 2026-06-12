@@ -54,11 +54,23 @@ export const createBooking = async (req, res) => {
       });
     });
 
-    // Tani që 'io' është lart, kjo do të ekzekutohet me siguri 100%
+    // Fetch updated trip with all bookings
+    const updatedTrip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        bus: true,
+        bookings: true,
+      },
+    });
+
+    const allBookedSeats = updatedTrip.bookings?.flatMap((b) => b.seats) || [];
+
+    // Emit updated seat information to all clients in this trip
     if (io) {
       console.log(`Emitting seat-booked for trip-${tripId}:`, requestedSeats);
       io.to(`trip-${tripId}`).emit("seat-booked", {
         seats: requestedSeats,
+        allBookedSeats: allBookedSeats,
       });
     }
 
