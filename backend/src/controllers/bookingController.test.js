@@ -4,31 +4,26 @@ import {
   getBookingById,
   getAllBookings,
 } from "./bookingController";
+import prisma from "../../db.js"; // Importojmë Prismën që të kemi qasje te funksionet e saj brenda testeve
 
-// 1. Definojmë funksionet mock me prefiksin e saktë 'mock' që Vitest t'i lejojë gjatë hoisting
-const mockBookingFindMany = vi.fn();
-const mockBookingCreate = vi.fn();
-const mockBookingFindUnique = vi.fn();
-const mockTripFindUnique = vi.fn();
-
-// 2. Bëjmë mock-un e modulit db.js
+// Bëjmë mock direkt pa asnjë variabël të jashtme në top-level
 vi.mock("../../db.js", () => {
   return {
     default: {
       $transaction: vi.fn(async (callback) => {
         return await callback({
           booking: {
-            findMany: mockBookingFindMany,
-            create: mockBookingCreate,
+            findMany: vi.fn(),
+            create: vi.fn(),
           },
         });
       }),
       booking: {
-        findUnique: mockBookingFindUnique,
-        findMany: mockBookingFindMany,
+        findUnique: vi.fn(),
+        findMany: vi.fn(),
       },
       trip: {
-        findUnique: mockTripFindUnique,
+        findUnique: vi.fn(),
       },
     },
   };
@@ -40,7 +35,9 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should return 404 if trip is not found", async () => {
-    mockTripFindUnique.mockResolvedValue(null);
+    // I qasemi mock-ut direkt përmes objektit prisma të importuar!
+    vi.mocked(prisma.trip.findUnique).mockResolvedValue(null);
+
     const req = {
       body: { tripId: 999, seats: [1, 2] },
       user: { userId: 1 },
@@ -56,8 +53,17 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should return 409 if seats are already booked inside transaction", async () => {
-    mockTripFindUnique.mockResolvedValue({ id: 1 });
-    mockBookingFindMany.mockResolvedValue([{ seats: [1, 2] }]);
+    vi.mocked(prisma.trip.findUnique).mockResolvedValue({ id: 1 });
+
+    // Kjo kap transaksionin e brendshëm sepse përdor të njëjtin referencë
+    const mockDbInTx = {
+      booking: {
+        findMany: vi.fn().mockResolvedValue([{ seats: [1, 2] }]),
+      },
+    };
+    vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback) => {
+      return await callback(mockDbInTx);
+    });
 
     const req = {
       body: { tripId: 1, seats: [1, 2] },
@@ -76,14 +82,22 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should create a booking successfully inside transaction", async () => {
-    mockTripFindUnique.mockResolvedValue({ id: 1 });
-    mockBookingFindMany.mockResolvedValue([]);
-    mockBookingCreate.mockResolvedValue({
-      id: 123,
-      tripId: 1,
-      userId: 1,
-      seats: [3, 4],
-      status: "CONFIRMED",
+    vi.mocked(prisma.trip.findUnique).mockResolvedValue({ id: 1 });
+
+    const mockDbInTx = {
+      booking: {
+        findMany: vi.fn().mockResolvedValue([]),
+        create: vi.fn().mockResolvedValue({
+          id: 123,
+          tripId: 1,
+          userId: 1,
+          seats: [3, 4],
+          status: "CONFIRMED",
+        }),
+      },
+    };
+    vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback) => {
+      return await callback(mockDbInTx);
     });
 
     const req = {
@@ -107,7 +121,7 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should return booking by ID", async () => {
-    mockBookingFindUnique.mockResolvedValue({
+    vi.mocked(prisma.booking.findUnique).mockResolvedValue({
       id: 123,
       tripId: 1,
       userId: 1,
@@ -134,7 +148,7 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should return 404 if booking not found", async () => {
-    mockBookingFindUnique.mockResolvedValue(null);
+    vi.mocked(prisma.booking.findUnique).mockResolvedValue(null);
     const req = {
       params: { id: 999 },
     };
@@ -149,7 +163,7 @@ describe("Booking Controller Tests", () => {
   });
 
   it("should return all bookings", async () => {
-    mockBookingFindMany.mockResolvedValue([
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([
       {
         id: 123,
         tripId: 1,
