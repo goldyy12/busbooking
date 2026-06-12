@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import api from "../Api";
 import "../styles/trip.css";
@@ -10,22 +10,12 @@ const TripDetails = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [lockedSeats, setLockedSeats] = useState([]);
 
-  console.log(trip);
+  console.log("Current Trip State:", trip);
 
-  useEffect(() => {
-    socket.on("seat-booked", ({ seats }) => {
-      setTrip((prev) => ({
-        ...prev,
-        bookedSeats: [...prev.bookedSeats, ...seats],
-      }));
-      setLockedSeats((prev) => prev.filter((s) => !seats.includes(s)));
-    });
-
-    return () => socket.off("seat-booked");
-  }, []);
   useEffect(() => {
     api.get(`/trips/${id}`).then((res) => {
-      console.log("Trip Data:", res.data);
+      console.log("Trip Data Loaded:", res.data);
+      setTrip(res.data);
     });
   }, [id]);
 
@@ -34,21 +24,34 @@ const TripDetails = () => {
     socket.emit("join-trip", id);
 
     socket.on("sync-locked-seats", setLockedSeats);
+
     socket.on("seat-locked", ({ seat }) =>
       setLockedSeats((prev) => (prev.includes(seat) ? prev : [...prev, seat])),
     );
+
     socket.on("seat-unlocked", ({ seat }) =>
       setLockedSeats((prev) => prev.filter((s) => s !== seat)),
     );
 
+    socket.on("seat-booked", ({ seats }) => {
+      setTrip((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bookedSeats: [...(prev.bookedSeats || []), ...seats],
+        };
+      });
+
+      setLockedSeats((prev) => prev.filter((s) => !seats.includes(s)));
+    });
+
     return () => {
       socket.disconnect();
-      socket.off();
+      socket.off("sync-locked-seats");
+      socket.off("seat-locked");
+      socket.off("seat-unlocked");
+      socket.off("seat-booked");
     };
-  }, [id]);
-
-  useEffect(() => {
-    api.get(`/trips/${id}`).then((res) => setTrip(res.data));
   }, [id]);
 
   if (!trip) return <p>Loading...</p>;
@@ -65,27 +68,33 @@ const TripDetails = () => {
       setSelectedSeats((prev) => [...prev, seat]);
     }
   };
+
   const TOTAL_SEATS = trip?.bus.totalSeats || 40;
 
   const handleBooking = async () => {
-    await api.post("/bookings", {
-      tripId: trip.id,
-      seats: selectedSeats,
-    });
+    try {
+      await api.post("/bookings", {
+        tripId: trip.id,
+        seats: selectedSeats,
+      });
 
-    selectedSeats.forEach((seat) =>
-      socket.emit("unlock-seat", { tripId: id, seat }),
-    );
+      selectedSeats.forEach((seat) =>
+        socket.emit("unlock-seat", { tripId: id, seat }),
+      );
 
-    alert("Booking confirmed!");
-    const res = await api.get(`/trips/${id}`);
-    setTrip(res.data);
-    setSelectedSeats([]);
+      alert("Booking confirmed!");
+
+      const res = await api.get(`/trips/${id}`);
+      setTrip(res.data);
+      setSelectedSeats([]);
+    } catch (error) {
+      console.error("Booking failed:", error);
+      alert("Failed to confirm booking. Please try again.");
+    }
   };
 
   return (
     <div className="main-container">
-      {/* COLUMN 1: LEFT SIDE (Booking Summary) */}
       <div className="ticket-info-section">
         <h2 style={{ marginTop: 0, fontSize: "22px", color: "#1f2937" }}>
           {trip.from} → {trip.to}
@@ -125,7 +134,6 @@ const TripDetails = () => {
         </div>
       </div>
 
-      {/* COLUMN 2: RIGHT SIDE (Seat Selection) */}
       <div className="seat-selection-section">
         <h3 style={{ marginTop: 0, marginBottom: "20px" }}>Select Seats</h3>
         <div className="seat-grid">
