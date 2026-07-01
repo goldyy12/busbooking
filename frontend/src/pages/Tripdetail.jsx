@@ -30,12 +30,10 @@ const TripDetails = () => {
     }
 
     socket.emit("join-trip", parseInt(id));
-    console.log("📤 Emitted join-trip event for room: trip-" + id);
 
-    // IMPORTANT: Use once() for these one-time handlers, then on() for persistent ones
     const handleSeatBooked = (data) => {
       console.log("📌 seat-booked event received:", data);
-      const { seats, allBookedSeats } = data;
+      const { requestedSeats, allBookedSeats } = data;
 
       if (allBookedSeats && Array.isArray(allBookedSeats)) {
         console.log("📊 Using allBookedSeats from backend:", allBookedSeats);
@@ -47,17 +45,20 @@ const TripDetails = () => {
           };
         });
       } else {
-        console.warn("⚠️ allBookedSeats missing, using seats:", seats);
+        console.warn(
+          "⚠️ allBookedSeats missing, using requestedSeats:",
+          requestedSeats,
+        );
         setTrip((prevTrip) => {
           if (!prevTrip) return prevTrip;
           return {
             ...prevTrip,
-            bookedSeats: [...(prevTrip.bookedSeats || []), ...seats],
+            bookedSeats: [...(prevTrip.bookedSeats || []), ...requestedSeats],
           };
         });
       }
 
-      setLockedSeats((prev) => prev.filter((s) => !seats.includes(s)));
+      setLockedSeats((prev) => prev.filter((s) => !requestedSeats.includes(s)));
       console.log("✅ Trip state updated successfully");
     };
 

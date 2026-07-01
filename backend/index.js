@@ -69,7 +69,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("lock-seat", ({ tripId, seat }) => {
-    console.log(`🔒 Socket ${socket.id} locking seat ${seat} in trip ${tripId}`);
+    console.log(
+      `🔒 Socket ${socket.id} locking seat ${seat} in trip ${tripId}`,
+    );
     if (!seatLocks[tripId]) seatLocks[tripId] = {};
     if (seatLocks[tripId][seat]) return;
     seatLocks[tripId][seat] = socket.id;
@@ -77,7 +79,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("unlock-seat", ({ tripId, seat }) => {
-    console.log(`🔓 Socket ${socket.id} unlocking seat ${seat} in trip ${tripId}`);
+    console.log(
+      `🔓 Socket ${socket.id} unlocking seat ${seat} in trip ${tripId}`,
+    );
     if (seatLocks[tripId]?.[seat]) {
       delete seatLocks[tripId][seat];
       io.to(`trip-${tripId}`).emit("seat-unlocked", { seat });

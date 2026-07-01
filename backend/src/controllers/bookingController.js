@@ -59,7 +59,8 @@ export const createBooking = async (req, res) => {
         requestedSeats,
       );
       io.to(`trip-${tripId}`).emit("seat-booked", {
-        seats: requestedSeats,
+        requestedSeats,
+        allBookedSeats: null, // Will be populated by the frontend or backend
       });
     }
 
