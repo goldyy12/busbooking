@@ -28,19 +28,13 @@ const TripDetails = () => {
     socket.emit("join-trip", parseInt(id));
 
     const handleSeatBooked = (data) => {
-        console.log("📌 seat-booked event received:", data);
-       const { requestedSeats, allBookedSeats } = data;
+      console.log("📌 seat-booked event received:", data);
+      const { requestedSeats, allBookedSeats } = data;
 
-  
-
-           setTrip((prevTrip) => {
-            if (!prevTrip) return prevTrip;
-    return { ...prevTrip, bookedSeats: allBookedSeats };
-  });
-
-  setLockedSeats((prev) => prev.filter((s) => !requestedSeats.includes(s)));
-  console.log("✅ Trip state updated successfully");
-};
+      setTrip((prevTrip) => {
+        if (!prevTrip) return prevTrip;
+        return { ...prevTrip, bookedSeats: allBookedSeats };
+      });
 
       setLockedSeats((prev) => prev.filter((s) => !requestedSeats.includes(s)));
       console.log("✅ Trip state updated successfully");
