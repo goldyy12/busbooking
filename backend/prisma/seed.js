@@ -29,7 +29,9 @@ async function main() {
   console.log("🚀 Starting clean relational seed with dynamic dates...");
 
   // 1️⃣ Safe Cascading Truncation Block via Interactive Transaction
+  // Order matters: BookedSeat has a FK to Booking, so it must be deleted first
   await prisma.$transaction([
+    prisma.bookedSeat.deleteMany(),
     prisma.booking.deleteMany(),
     prisma.trip.deleteMany(),
     prisma.bus.deleteMany(),
@@ -128,21 +130,37 @@ async function main() {
   ]);
 
   // 6️⃣ Seeding Concurrency-Safe Active Bookings
-  await prisma.booking.createMany({
-    data: [
-      {
-        userId: passengerArben.id,
-        tripId: prishtinaToFerizaj.id,
-        seats: [1, 2],
-        status: "CONFIRMED",
-      },
-      {
-        userId: passengerElira.id,
-        tripId: ferizajToPrishtina.id,
-        seats: [5],
-        status: "PENDING",
-      },
-    ],
+  // Booking and its seats now live in separate tables (Booking -> BookedSeat)
+  // so each booking is created first, then its seat rows are attached to it.
+
+  const bookingArben = await prisma.booking.create({
+    data: {
+      userId: passengerArben.id,
+      tripId: prishtinaToFerizaj.id,
+      status: "CONFIRMED",
+    },
+  });
+  await prisma.bookedSeat.createMany({
+    data: [1, 2].map((seatNumber) => ({
+      tripId: prishtinaToFerizaj.id,
+      seatNumber,
+      bookingId: bookingArben.id,
+    })),
+  });
+
+  const bookingElira = await prisma.booking.create({
+    data: {
+      userId: passengerElira.id,
+      tripId: ferizajToPrishtina.id,
+      status: "PENDING",
+    },
+  });
+  await prisma.bookedSeat.createMany({
+    data: [5].map((seatNumber) => ({
+      tripId: ferizajToPrishtina.id,
+      seatNumber,
+      bookingId: bookingElira.id,
+    })),
   });
 
   console.log(
