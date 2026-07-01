@@ -30,44 +30,48 @@ export const createBooking = async (req, res) => {
     const trip = await prisma.trip.findUnique({ where: { id: tripId } });
     if (!trip) return res.status(404).json({ error: "Trip not found" });
 
-    const booking = await prisma.$transaction(async (tx) => {
-      const existingBookings = await tx.booking.findMany({
-        where: { tripId },
-      });
-      const bookedSeats = existingBookings.flatMap((b) => b.seats);
+    const { booking, allBookedSeats } = await prisma.$transaction(
+      async (tx) => {
+        const newBooking = await tx.booking.create({
+          data: { tripId, userId, status: "CONFIRMED" },
+        });
 
-      const seatConflict = requestedSeats.some((seat) =>
-        bookedSeats.includes(seat),
-      );
-      if (seatConflict) {
-        throw new Error("One or more seats already booked");
-      }
+        // this insert is what actually enforces no-double-booking
+        // if two requests race, one of them throws P2002 here
+        await tx.bookedSeat.createMany({
+          data: requestedSeats.map((seatNumber) => ({
+            tripId,
+            seatNumber,
+            bookingId: newBooking.id,
+          })),
+        });
 
-      return await tx.booking.create({
-        data: {
-          tripId,
-          userId,
-          seats: requestedSeats,
-          status: "CONFIRMED",
-        },
-      });
-    });
+        const all = await tx.bookedSeat.findMany({
+          where: { tripId },
+          select: { seatNumber: true },
+        });
+
+        return {
+          booking: newBooking,
+          allBookedSeats: all.map((s) => s.seatNumber),
+        };
+      },
+    );
 
     if (io) {
-      console.log(
-        `Emitting seat-booked event for trip-${tripId}:`,
-        requestedSeats,
-      );
       io.to(`trip-${tripId}`).emit("seat-booked", {
         requestedSeats,
-        allBookedSeats: null, // Will be populated by the frontend or backend
+        allBookedSeats,
       });
     }
 
     res.status(201).json(booking);
   } catch (error) {
-    if (error.message === "One or more seats already booked") {
-      return res.status(409).json({ error: error.message });
+    if (error.code === "P2002") {
+      // unique constraint hit — someone else grabbed a seat first
+      return res
+        .status(409)
+        .json({ error: "One or more seats already booked" });
     }
     console.error("Create Booking error:", error.message);
     res.status(500).json({ error: error.message });

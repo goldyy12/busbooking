@@ -37,19 +37,30 @@ model Trip {
   busId    Int
   bus      Bus       @relation(fields: [busId], references: [id])
   bookings Booking[]
+  bookedSeats BookedSeat[]
 }
 
 model Booking {
-  id        Int           @id @default(autoincrement())
-  userId    Int
-  tripId    Int
-  seats     Int[]
-  status    BookingStatus @default(PENDING)
-  user      User          @relation(fields: [userId], references: [id])
-  trip      Trip          @relation(fields: [tripId], references: [id])
-  createdAt DateTime      @default(now())
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  tripId      Int
+  status      BookingStatus @default(PENDING)
+  user        User          @relation(fields: [userId], references: [id])
+  trip        Trip          @relation(fields: [tripId], references: [id])
+  bookedSeats BookedSeat[]
+  createdAt   DateTime      @default(now())
 }
 
+model BookedSeat {
+  id         Int     @id @default(autoincrement())
+  tripId     Int
+  seatNumber Int
+  bookingId  Int
+  trip       Trip    @relation(fields: [tripId], references: [id])
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, seatNumber]) // <- this is the actual double-booking guard
+}
 enum BookingStatus {
   PENDING
   CONFIRMED
