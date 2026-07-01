@@ -1,6 +1,5 @@
 import prisma from "../../db.js";
 
-// 1. Deklarojmë instancën e IO në majë të skedarit që të jetë e disponueshme kudo
 let io;
 
 export const setIO = (ioInstance) => {
@@ -54,10 +53,9 @@ export const createBooking = async (req, res) => {
       });
     });
 
-    // Tani që 'io' është lart, kjo do të ekzekutohet me siguri 100%
     if (io) {
-      console.log(`Emitting seat-booked for trip-${tripId}:`, requestedSeats);
-      io.to(`trip-${tripId}`).emit("seat-booked", {
+      console.log(`Emitting lock-seats for trip-${tripId}:`, requestedSeats);
+      io.to(`trip-${tripId}`).emit("lock-seat", {
         seats: requestedSeats,
       });
     }
