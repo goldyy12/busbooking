@@ -4,6 +4,7 @@ let io;
 
 export const setIO = (ioInstance) => {
   io = ioInstance;
+  console.log("✅ Socket.IO instance set in bookingController");
 };
 
 export const getAllBookings = async (req, res) => {
@@ -26,6 +27,8 @@ export const createBooking = async (req, res) => {
     const { tripId, seats } = req.body;
     const userId = req.user.userId || req.user.id;
     const requestedSeats = seats.map(Number);
+
+    console.log(`📤 CREATE BOOKING: tripId=${tripId}, userId=${userId}, seats=${JSON.stringify(requestedSeats)}`);
 
     const trip = await prisma.trip.findUnique({ where: { id: tripId } });
     if (!trip) return res.status(404).json({ error: "Trip not found" });
@@ -56,8 +59,36 @@ export const createBooking = async (req, res) => {
     if (io) {
       console.log(`Emitting lock-seats for trip-${tripId}:`, requestedSeats);
       io.to(`trip-${tripId}`).emit("lock-seat", {
+    console.log(`✅ BOOKING CREATED: booking id=${booking.id}`);
+
+    // Fetch updated trip with all bookings
+    console.log(`📍 Fetching updated trip with all bookings for tripId=${tripId}`);
+    const updatedTrip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        bus: true,
+        bookings: true,
+      },
+    });
+
+    const allBookedSeats = updatedTrip.bookings?.flatMap((b) => b.seats) || [];
+    console.log(`📊 Total booked seats in trip: ${JSON.stringify(allBookedSeats)}`);
+
+    // Emit updated seat information to all clients in this trip
+    if (io) {
+      const roomName = `trip-${tripId}`;
+      console.log(`📤 EMITTING seat-booked to room: ${roomName}`);
+      console.log(`   - Seats just booked: ${JSON.stringify(requestedSeats)}`);
+      console.log(`   - All booked seats: ${JSON.stringify(allBookedSeats)}`);
+      
+      io.to(roomName).emit("seat-booked", {
         seats: requestedSeats,
+        allBookedSeats: allBookedSeats,
       });
+      
+      console.log(`✅ EVENT EMITTED to ${roomName}`);
+    } else {
+      console.error("❌ Socket.IO instance (io) is not available!");
     }
 
     res.status(201).json(booking);

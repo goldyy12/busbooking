@@ -10,85 +10,143 @@ const TripDetails = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [lockedSeats, setLockedSeats] = useState([]);
 
-  console.log("Current Trip State:", trip);
-
+  // Initial trip load
   useEffect(() => {
+    console.log("📍 Loading trip data for ID:", id);
     api.get(`/trips/${id}`).then((res) => {
-      console.log("Trip Data Loaded:", res.data);
+      console.log("✅ Trip Data Loaded:", res.data);
       setTrip(res.data);
     });
   }, [id]);
 
+  // Socket setup
   useEffect(() => {
-    socket.connect();
-    socket.emit("join-trip", id);
+    if (!id) return;
+    
+    console.log("🚀 Setting up Socket.IO connection for trip:", id);
+    
+    // Ensure socket is connected
+    if (!socket.connected) {
+      socket.connect();
+      console.log("📡 Socket connected");
+    }
+    
+    // Join trip room
+    socket.emit("join-trip", parseInt(id));
+    console.log("📤 Emitted join-trip event for room: trip-" + id);
 
-    socket.on("sync-locked-seats", setLockedSeats);
+    // IMPORTANT: Use once() for these one-time handlers, then on() for persistent ones
+    const handleSeatBooked = (data) => {
+      console.log("✅✅✅ SEAT BOOKED EVENT RECEIVED ✅✅✅");
+      console.log("Full event data:", data);
+      
+      const { seats, allBookedSeats } = data;
+      
+      if (allBookedSeats && Array.isArray(allBookedSeats)) {
+        console.log("📊 Using allBookedSeats from backend:", allBookedSeats);
+        setTrip((prevTrip) => {
+          if (!prevTrip) return prevTrip;
+          return {
+            ...prevTrip,
+            bookedSeats: allBookedSeats,
+          };
+        });
+      } else {
+        console.warn("⚠️ allBookedSeats missing, using seats:", seats);
+        setTrip((prevTrip) => {
+          if (!prevTrip) return prevTrip;
+          return {
+            ...prevTrip,
+            bookedSeats: [...(prevTrip.bookedSeats || []), ...seats],
+          };
+        });
+      }
 
-    socket.on("seat-locked", ({ seat }) =>
-      setLockedSeats((prev) => (prev.includes(seat) ? prev : [...prev, seat])),
-    );
-
-    socket.on("seat-unlocked", ({ seat }) =>
-      setLockedSeats((prev) => prev.filter((s) => s !== seat)),
-    );
-
-    socket.on("seat-booked", ({ seats }) => {
-      setTrip((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          bookedSeats: [...(prev.bookedSeats || []), ...seats],
-        };
-      });
-
+      // Clear locked seats
       setLockedSeats((prev) => prev.filter((s) => !seats.includes(s)));
-    });
+      console.log("✅ Trip state updated successfully");
+    };
 
+    const handleSeatLocked = (data) => {
+      console.log("🔒 seat-locked event:", data);
+      setLockedSeats((prev) => {
+        if (prev.includes(data.seat)) return prev;
+        return [...prev, data.seat];
+      });
+    };
+
+    const handleSeatUnlocked = (data) => {
+      console.log("🔓 seat-unlocked event:", data);
+      setLockedSeats((prev) => prev.filter((s) => s !== data.seat));
+    };
+
+    const handleSyncLockedSeats = (seats) => {
+      console.log("🔒 sync-locked-seats event:", seats);
+      setLockedSeats(seats || []);
+    };
+
+    // Register all listeners with .on() so they persist
+    socket.on("seat-booked", handleSeatBooked);
+    socket.on("seat-locked", handleSeatLocked);
+    socket.on("seat-unlocked", handleSeatUnlocked);
+    socket.on("sync-locked-seats", handleSyncLockedSeats);
+
+    console.log("✅ Socket event listeners registered");
+
+    // Cleanup
     return () => {
-      socket.disconnect();
-      socket.off("sync-locked-seats");
-      socket.off("seat-locked");
-      socket.off("seat-unlocked");
-      socket.off("seat-booked");
+      console.log("🧹 Cleaning up Socket.IO listeners for trip:", id);
+      socket.off("seat-booked", handleSeatBooked);
+      socket.off("seat-locked", handleSeatLocked);
+      socket.off("seat-unlocked", handleSeatUnlocked);
+      socket.off("sync-locked-seats", handleSyncLockedSeats);
     };
   }, [id]);
 
   if (!trip) return <p>Loading...</p>;
 
   const toggleSeat = (seat) => {
-    if (trip.bookedSeats.includes(seat)) return;
-    if (lockedSeats.includes(seat) && !selectedSeats.includes(seat)) return;
+    if (trip.bookedSeats?.includes(seat)) {
+      console.log("❌ Seat already booked:", seat);
+      return;
+    }
+    if (lockedSeats.includes(seat) && !selectedSeats.includes(seat)) {
+      console.log("❌ Seat already locked:", seat);
+      return;
+    }
 
     if (selectedSeats.includes(seat)) {
-      socket.emit("unlock-seat", { tripId: id, seat });
+      console.log("🔓 Unlocking seat:", seat);
+      socket.emit("unlock-seat", { tripId: parseInt(id), seat });
       setSelectedSeats((prev) => prev.filter((s) => s !== seat));
     } else {
-      socket.emit("lock-seat", { tripId: id, seat });
+      console.log("🔒 Locking seat:", seat);
+      socket.emit("lock-seat", { tripId: parseInt(id), seat });
       setSelectedSeats((prev) => [...prev, seat]);
     }
   };
 
-  const TOTAL_SEATS = trip?.bus.totalSeats || 40;
+  const TOTAL_SEATS = trip?.bus?.totalSeats || 40;
 
   const handleBooking = async () => {
     try {
+      console.log("📤 BOOKING: Sending request with seats:", selectedSeats);
       await api.post("/bookings", {
-        tripId: trip.id,
+        tripId: parseInt(trip.id),
         seats: selectedSeats,
       });
+      console.log("✅ BOOKING: Server accepted the booking");
 
-      selectedSeats.forEach((seat) =>
-        socket.emit("unlock-seat", { tripId: id, seat }),
-      );
+      // Unlock seats
+      selectedSeats.forEach((seat) => {
+        socket.emit("unlock-seat", { tripId: parseInt(id), seat });
+      });
 
       alert("Booking confirmed!");
-
-      const res = await api.get(`/trips/${id}`);
-      setTrip(res.data);
       setSelectedSeats([]);
+      console.log("🧹 BOOKING: Cleared selected seats");
     } catch (error) {
-      console.error("Booking failed:", error);
+      console.error("❌ BOOKING FAILED:", error);
       alert("Failed to confirm booking. Please try again.");
     }
   };
@@ -138,7 +196,7 @@ const TripDetails = () => {
         <h3 style={{ marginTop: 0, marginBottom: "20px" }}>Select Seats</h3>
         <div className="seat-grid">
           {Array.from({ length: TOTAL_SEATS }, (_, i) => i + 1).map((seat) => {
-            const isBooked = trip.bookedSeats.includes(seat);
+            const isBooked = trip.bookedSeats?.includes(seat) || false;
             const isSelected = selectedSeats.includes(seat);
             const isLocked = lockedSeats.includes(seat);
 
