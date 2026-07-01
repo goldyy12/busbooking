@@ -19,29 +19,24 @@ const TripDetails = () => {
     });
   }, [id]);
 
-  // Socket setup
   useEffect(() => {
     if (!id) return;
-    
+
     console.log("🚀 Setting up Socket.IO connection for trip:", id);
-    
-    // Ensure socket is connected
+
     if (!socket.connected) {
       socket.connect();
       console.log("📡 Socket connected");
     }
-    
-    // Join trip room
+
     socket.emit("join-trip", parseInt(id));
     console.log("📤 Emitted join-trip event for room: trip-" + id);
 
     // IMPORTANT: Use once() for these one-time handlers, then on() for persistent ones
     const handleSeatBooked = (data) => {
-      console.log("✅✅✅ SEAT BOOKED EVENT RECEIVED ✅✅✅");
-      console.log("Full event data:", data);
-      
+      console.log("📌 seat-booked event received:", data);
       const { seats, allBookedSeats } = data;
-      
+
       if (allBookedSeats && Array.isArray(allBookedSeats)) {
         console.log("📊 Using allBookedSeats from backend:", allBookedSeats);
         setTrip((prevTrip) => {
@@ -62,7 +57,6 @@ const TripDetails = () => {
         });
       }
 
-      // Clear locked seats
       setLockedSeats((prev) => prev.filter((s) => !seats.includes(s)));
       console.log("✅ Trip state updated successfully");
     };
@@ -137,7 +131,6 @@ const TripDetails = () => {
       });
       console.log("✅ BOOKING: Server accepted the booking");
 
-      // Unlock seats
       selectedSeats.forEach((seat) => {
         socket.emit("unlock-seat", { tripId: parseInt(id), seat });
       });
