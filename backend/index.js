@@ -58,10 +58,7 @@ bookingController.setIO(io);
 const seatLocks = {};
 
 io.on("connection", (socket) => {
-  console.log("✅ Socket connected:", socket.id);
-
   socket.on("join-trip", (tripId) => {
-    console.log(`📍 Socket ${socket.id} joining trip-${tripId}`);
     socket.join(`trip-${tripId}`);
     const lockedSeats = seatLocks[tripId]
       ? Object.keys(seatLocks[tripId]).map(Number)

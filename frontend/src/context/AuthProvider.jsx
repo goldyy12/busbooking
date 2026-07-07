@@ -8,7 +8,7 @@ function getUserFromToken() {
 
   try {
     const decoded = jwtDecode(token);
-    const currentTime = Date.now() / 1000; // JWT time is in seconds
+    const currentTime = Date.now() / 1000;
 
     if (decoded.exp < currentTime) {
       localStorage.removeItem("token");
