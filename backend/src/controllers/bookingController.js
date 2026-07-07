@@ -122,5 +122,6 @@ export const getMyBookings = async (req, res) => {
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ error: error.message });
+    console.error("Get my bookings error:", error.message);
   }
 };
