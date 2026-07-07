@@ -35,6 +35,7 @@ async function main() {
     prisma.booking.deleteMany(),
     prisma.trip.deleteMany(),
     prisma.bus.deleteMany(),
+    prisma.refreshToken.deleteMany(),
     prisma.user.deleteMany(),
   ]);
 

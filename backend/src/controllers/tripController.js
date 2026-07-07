@@ -71,7 +71,11 @@ export const getTripById = async (req, res) => {
       where: { id: tripId },
       include: {
         bus: true,
-        bookings: true,
+        bookings: {
+          include: {
+            bookedSeats: true,
+          },
+        },
       },
     });
 
@@ -79,7 +83,9 @@ export const getTripById = async (req, res) => {
       return res.status(404).json({ error: "Trip not found" });
     }
 
-    const bookedSeats = trip.bookings?.flatMap((b) => b.seats);
+    const bookedSeats = trip.bookings?.flatMap((b) =>
+      b.bookedSeats.map((s) => s.seatNumber),
+    );
 
     res.status(200).json({
       ...trip,
