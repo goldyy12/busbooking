@@ -114,8 +114,8 @@ export const getMyBookings = async (req, res) => {
       include: {
         trip: {
           include: { bus: true },
-          bookedSeats: true,
         },
+        bookedSeats: true,
       },
     });
 
