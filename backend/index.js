@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
+import cookieParser from "cookie-parser";
 
 import bookingRoutes from "./src/routes/bookingRoutes.js";
 import busRoutes from "./src/routes/busRoutes.js";
@@ -36,6 +37,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/buses", busRoutes);
@@ -64,14 +66,10 @@ io.on("connection", (socket) => {
     const lockedSeats = seatLocks[tripId]
       ? Object.keys(seatLocks[tripId]).map(Number)
       : [];
-    console.log(`📤 Sending sync-locked-seats to ${socket.id}:`, lockedSeats);
     socket.emit("sync-locked-seats", lockedSeats);
   });
 
   socket.on("lock-seat", ({ tripId, seat }) => {
-    console.log(
-      `🔒 Socket ${socket.id} locking seat ${seat} in trip ${tripId}`,
-    );
     if (!seatLocks[tripId]) seatLocks[tripId] = {};
     if (seatLocks[tripId][seat]) return;
     seatLocks[tripId][seat] = socket.id;
@@ -79,9 +77,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("unlock-seat", ({ tripId, seat }) => {
-    console.log(
-      `🔓 Socket ${socket.id} unlocking seat ${seat} in trip ${tripId}`,
-    );
     if (seatLocks[tripId]?.[seat]) {
       delete seatLocks[tripId][seat];
       io.to(`trip-${tripId}`).emit("seat-unlocked", { seat });
@@ -89,7 +84,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ Socket disconnected:", socket.id);
     for (const tripId in seatLocks) {
       for (const seat in seatLocks[tripId]) {
         if (seatLocks[tripId][seat] === socket.id) {

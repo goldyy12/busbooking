@@ -18,6 +18,7 @@ model User {
   password  String
   role      Role      @default(USER)
   bookings  Booking[]
+  refreshTokens RefreshToken[]
   createdAt DateTime  @default(now())
 }
 
@@ -70,4 +71,15 @@ enum BookingStatus {
 enum Role {
   USER
   ADMIN
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  tokenHash  String   @unique   // hash of the random token, not the raw value
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  familyId   String              // groups tokens from the same login session
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
 }

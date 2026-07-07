@@ -15,6 +15,7 @@ const TripDetails = () => {
     if (!id) return;
     api.get(`/trips/${id}`).then((res) => {
       setTrip(res.data);
+      console.log("✅ Trip data loaded:", res.data);
     });
   }, [id]);
 
