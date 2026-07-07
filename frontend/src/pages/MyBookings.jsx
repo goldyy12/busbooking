@@ -52,9 +52,13 @@ const MyBookings = () => {
               Trip: {booking.trip.from} → {booking.trip.to}
             </p>
             <p>Date: {new Date(booking.trip.date).toLocaleString()}</p>
-            <p>Seats: {booking.seats.join(", ")}</p>
+            <p>
+              Seats: {booking.bookedSeats.map((s) => s.seatNumber).join(", ")}
+            </p>
             <p>Bus Number: {booking.trip.bus.busNumber}</p>
-            <p>Total Price: €{booking.seats.length * booking.trip.price}</p>
+            <p>
+              Total Price: €{booking.bookedSeats.length * booking.trip.price}
+            </p>
           </div>
         ))
       )}
