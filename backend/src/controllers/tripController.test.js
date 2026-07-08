@@ -112,7 +112,7 @@ describe("Trip Controller Tests", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ error: errorMessage });
   });
-  it("should a trip by ID successfully", async () => {
+  it("should find a trip by ID successfully", async () => {
     const tripId = 1;
     prisma.trip.findUnique.mockResolvedValue({
       id: tripId,
@@ -134,7 +134,12 @@ describe("Trip Controller Tests", () => {
     await getTripById(req, res);
     expect(prisma.trip.findUnique).toHaveBeenCalledWith({
       where: { id: tripId },
-      include: { bookings: true, bus: true },
+      include: {
+        bookings: {
+          include: { bookedSeats: true },
+        },
+        bus: true,
+      },
     });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
