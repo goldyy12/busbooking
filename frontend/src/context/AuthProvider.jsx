@@ -1,6 +1,7 @@
-import { useState } from "react"; // Added useEffect
+import { useState, useEffect } from "react"; // Added useEffect
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./AuthContext";
+import axios from "axios";
 
 function getUserFromToken() {
   const token = localStorage.getItem("token");
@@ -33,6 +34,23 @@ export function AuthProvider({ children }) {
     localStorage.setItem("token", token);
     setUser(jwtDecode(token));
   };
+  useEffect(() => {
+    if (!user) {
+      axios
+        .post(
+          `${import.meta.env.VITE_API_URL}/api/auth/refresh`,
+          {},
+          { withCredentials: true },
+        )
+        .then((res) => {
+          localStorage.setItem("token", res.data.token);
+          setUser(jwtDecode(res.data.token));
+        })
+        .catch(() => {
+          // no valid refresh cookie either — genuinely logged out
+        });
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser, login, logout }}>
