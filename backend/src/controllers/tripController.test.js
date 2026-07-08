@@ -112,26 +112,36 @@ describe("Trip Controller Tests", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ error: errorMessage });
   });
-  it("should find a trip by ID successfully", async () => {
+  it("should get a trip by ID successfully", async () => {
     const tripId = 1;
-    prisma.trip.findUnique.mockResolvedValue({
+
+    vi.mocked(prisma.trip.findUnique).mockResolvedValue({
       id: tripId,
       from: "CityA",
       to: "CityB",
       date: new Date("2024-07-01T10:00:00Z"),
       busId: 1,
       price: 25.5,
-      bookings: [{ seats: [1, 2, 3] }],
-      bookedSeats: [1, 2, 3],
+      bookings: [
+        {
+          id: 1,
+          bookedSeats: [
+            { seatNumber: 1 },
+            { seatNumber: 2 },
+            { seatNumber: 3 },
+          ],
+        },
+      ],
     });
-    const req = {
-      params: { id: tripId.toString() },
-    };
+
+    const req = { params: { id: tripId.toString() } };
     const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
+
     await getTripById(req, res);
+
     expect(prisma.trip.findUnique).toHaveBeenCalledWith({
       where: { id: tripId },
       include: {
@@ -141,6 +151,7 @@ describe("Trip Controller Tests", () => {
         bus: true,
       },
     });
+
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       id: tripId,
@@ -149,8 +160,16 @@ describe("Trip Controller Tests", () => {
       date: new Date("2024-07-01T10:00:00Z"),
       busId: 1,
       price: 25.5,
-      bookings: [{ seats: [1, 2, 3] }],
-
+      bookings: [
+        {
+          id: 1,
+          bookedSeats: [
+            { seatNumber: 1 },
+            { seatNumber: 2 },
+            { seatNumber: 3 },
+          ],
+        },
+      ],
       bookedSeats: [1, 2, 3],
     });
   });
