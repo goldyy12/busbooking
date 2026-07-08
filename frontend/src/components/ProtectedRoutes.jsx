@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (location.pathname.startsWith("/admin") && user.role !== "ADMIN") {
-    return <Navigate to="/" replace />; // Send non-admins back to home
+    return <Navigate to="/" replace />;
   }
   return children;
 }
