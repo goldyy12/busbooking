@@ -3,7 +3,7 @@ import { getClient } from "../../auth/oidc.js";
 import prisma from "../../db.js"; //// adjust to however you export your prisma client
 const { generate, signRefreshToken } = require("../../utils"); // adjust path to your existing JWT helpers
 
-exports.googleRedirect = async (req, res) => {
+export const googleRedirect = async (req, res) => {
   const client = await getClient();
   const state = generators.state();
   const nonce = generators.nonce();
@@ -18,7 +18,7 @@ exports.googleRedirect = async (req, res) => {
   res.redirect(url);
 };
 
-exports.googleCallback = async (req, res) => {
+export const googleCallback = async (req, res) => {
   const client = await getClient();
   const params = client.callbackParams(req);
   const tokenSet = await client.callback(
