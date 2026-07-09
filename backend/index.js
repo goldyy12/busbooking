@@ -45,7 +45,7 @@ app.use("/api/trips", tripRoutes);
 app.use("/api/auth", authRoutes);
 
 const server = http.createServer(app);
-
+app.get("/health", (req, res) => res.status(200).send("OK"));
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
