@@ -6,7 +6,7 @@ import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/Login";
 import TripsPage from "./pages/Trips";
-
+import AuthSuccess from "./pages/AuthSuccess";
 import Signup from "./pages/Signup";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AddBusPage from "./pages/admin/AddBus";
