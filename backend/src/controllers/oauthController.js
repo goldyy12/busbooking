@@ -1,5 +1,5 @@
-import { generators } from "openid-client";
-import { getClient } from "../../auth/oidc.js";
+import * as client from "openid-client";
+import { getConfig } from "../../auth/oidc.js";
 import prisma from "../../db.js";
 import crypto from "crypto";
 import {
@@ -8,30 +8,41 @@ import {
 } from "../../utils/token.js";
 
 export const googleRedirect = async (req, res) => {
-  const client = await getClient();
-  const state = generators.state();
-  const nonce = generators.nonce();
+  const config = await getConfig();
+
+  const code_verifier = client.randomPKCECodeVerifier();
+  const code_challenge = await client.calculatePKCECodeChallenge(code_verifier);
+  const state = client.randomState();
+  const nonce = client.randomNonce();
+
+  req.session.code_verifier = code_verifier;
   req.session.state = state;
   req.session.nonce = nonce;
 
-  const url = client.authorizationUrl({
+  const redirectTo = client.buildAuthorizationUrl(config, {
+    redirect_uri: process.env.GOOGLE_CALLBACK_URL,
     scope: "openid email profile",
+    code_challenge,
+    code_challenge_method: "S256",
     state,
     nonce,
   });
-  res.redirect(url);
+
+  res.redirect(redirectTo.href);
 };
 
 export const googleCallback = async (req, res) => {
-  const client = await getClient();
-  const params = client.callbackParams(req);
-  const tokenSet = await client.callback(
-    process.env.GOOGLE_CALLBACK_URL,
-    params,
-    { state: req.session.state, nonce: req.session.nonce },
-  );
+  const config = await getConfig();
 
-  const claims = tokenSet.claims();
+  const currentUrl = new URL(req.originalUrl, process.env.GOOGLE_CALLBACK_URL);
+
+  const tokens = await client.authorizationCodeGrant(config, currentUrl, {
+    pkceCodeVerifier: req.session.code_verifier,
+    expectedState: req.session.state,
+    expectedNonce: req.session.nonce,
+  });
+
+  const claims = tokens.claims();
   const familyId = crypto.randomBytes(16).toString("hex");
 
   let user = await prisma.user.findUnique({ where: { email: claims.email } });
@@ -41,7 +52,7 @@ export const googleCallback = async (req, res) => {
         name: claims.name || claims.email.split("@")[0],
         email: claims.email,
         googleId: claims.sub,
-        password: "", // adjust: if your schema requires password, see note below
+        password: crypto.randomBytes(32).toString("hex"),
       },
     });
   } else if (!user.googleId) {

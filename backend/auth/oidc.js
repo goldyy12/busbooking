@@ -1,16 +1,13 @@
-// auth/oidc.js
-import { Issuer } from "openid-client";
+import * as client from "openid-client";
 
-let client;
-async function getClient() {
-  if (client) return client;
-  const googleIssuer = await Issuer.discover("https://accounts.google.com");
-  client = new googleIssuer.Client({
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    redirect_uris: ["http://localhost:5000/auth/google/callback"],
-    response_types: ["code"],
-  });
-  return client;
+let config;
+
+export async function getConfig() {
+  if (config) return config;
+  config = await client.discovery(
+    new URL("https://accounts.google.com"),
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+  );
+  return config;
 }
-module.exports = { getClient };
