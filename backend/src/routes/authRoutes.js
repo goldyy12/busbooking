@@ -4,10 +4,10 @@ import {
   login,
   refreshToken,
 } from "../controllers/authController.js";
-const {
+import {
   googleRedirect,
   googleCallback,
-} = require("../controllers/oauthController");
+} from "../controllers/oauthController.js";
 
 const router = express.Router();
 router.get("/google", googleRedirect);

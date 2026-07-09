@@ -51,7 +51,7 @@ exports.googleCallback = async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
-    sameSite: "lax",
+    sameSite: "none",
   });
   res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${accessToken}`);
 };
