@@ -1,6 +1,6 @@
-const { generators } = require("openid-client");
-const { getClient } = require("../../auth/oidc");
-const prisma = require("../../db"); // adjust to however you export your prisma client
+import { generators } from "openid-client";
+import { getClient } from "../../auth/oidc.js";
+import prisma from "../../db.js"; //// adjust to however you export your prisma client
 const { generate, signRefreshToken } = require("../../utils"); // adjust path to your existing JWT helpers
 
 exports.googleRedirect = async (req, res) => {

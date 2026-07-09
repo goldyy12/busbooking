@@ -1,5 +1,5 @@
 // auth/oidc.js
-const { Issuer } = require("openid-client");
+import { Issuer } from "openid-client";
 
 let client;
 async function getClient() {
