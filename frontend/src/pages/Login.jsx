@@ -12,7 +12,9 @@ export default function Login() {
 
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -52,7 +54,15 @@ export default function Login() {
           <button type="submit" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
+          <div className="auth-divider">or</div>
 
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="google-login-btn"
+          >
+            Continue with Google
+          </button>
           <div className="auth-link">
             <Link to="/signup">
               <button type="button">Go to Signup</button>

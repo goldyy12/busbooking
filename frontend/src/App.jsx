@@ -26,6 +26,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/homepage" element={<HomePage />} />
             <Route path="/trips" element={<TripsPage />} />
+            <Route path="/auth/success" element={<AuthSuccess />} />
 
             <Route
               path="/mybookings"
