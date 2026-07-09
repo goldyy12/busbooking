@@ -1,7 +1,11 @@
 import { generators } from "openid-client";
 import { getClient } from "../../auth/oidc.js";
-import prisma from "../../db.js"; //// adjust to however you export your prisma client
-const { generate, signRefreshToken } = require("../../utils"); // adjust path to your existing JWT helpers
+import prisma from "../../db.js";
+import crypto from "crypto";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../../utils/token.js";
 
 export const googleRedirect = async (req, res) => {
   const client = await getClient();
@@ -28,14 +32,16 @@ export const googleCallback = async (req, res) => {
   );
 
   const claims = tokenSet.claims();
+  const familyId = crypto.randomBytes(16).toString("hex");
 
   let user = await prisma.user.findUnique({ where: { email: claims.email } });
   if (!user) {
     user = await prisma.user.create({
       data: {
+        name: claims.name || claims.email.split("@")[0],
         email: claims.email,
-        name: claims.name,
         googleId: claims.sub,
+        password: "", // adjust: if your schema requires password, see note below
       },
     });
   } else if (!user.googleId) {
@@ -46,12 +52,14 @@ export const googleCallback = async (req, res) => {
   }
 
   const accessToken = generateAccessToken(user);
-  const refreshToken = await generateRefreshToken(user);
+  const refreshToken = await generateRefreshToken(user, familyId);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
+
   res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${accessToken}`);
 };
