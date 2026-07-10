@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
+import session from "express-session";
 
 import bookingRoutes from "./src/routes/bookingRoutes.js";
 import busRoutes from "./src/routes/busRoutes.js";
@@ -38,6 +39,17 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
+  }),
+);
 
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/buses", busRoutes);
