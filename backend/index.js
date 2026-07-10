@@ -22,7 +22,7 @@ const allowedOrigins = [
   "https://busbooking-omega.vercel.app",
   "https://busbooking-git-main-diar-selmanis-projects.vercel.app",
 ];
-
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: function (origin, callback) {
