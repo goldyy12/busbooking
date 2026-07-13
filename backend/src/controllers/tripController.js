@@ -1,16 +1,18 @@
 import prisma from "../../db.js";
-export const getAllTrips = async (req, res) => {
+export const getAllTrips = async (req, res, next) => {
   try {
     const trips = await prisma.trip.findMany();
     res.status(200).json(trips);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
-export const createTrip = async (req, res) => {
+export const createTrip = async (req, res, next) => {
   try {
     const { from, to, date, busId, price } = req.body;
-
+    if (!from || !to || !date || !busId || !price) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
     const trip = await prisma.trip.create({
       data: {
         from,
@@ -23,11 +25,10 @@ export const createTrip = async (req, res) => {
 
     res.status(201).json(trip);
   } catch (error) {
-    console.error("Error creating trip:", error);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
-export const searchTrips = async (req, res) => {
+export const searchTrips = async (req, res, next) => {
   try {
     const { from, to, date } = req.query;
 
@@ -59,11 +60,10 @@ export const searchTrips = async (req, res) => {
 
     res.status(200).json(trips);
   } catch (error) {
-    console.error("Backend Error:", error);
-    res.status(500).json({ error: "Failed to fetch trips" });
+    next(error);
   }
 };
-export const getTripById = async (req, res) => {
+export const getTripById = async (req, res, next) => {
   try {
     const tripId = parseInt(req.params.id);
 
@@ -92,6 +92,6 @@ export const getTripById = async (req, res) => {
       bookedSeats,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };

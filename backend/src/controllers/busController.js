@@ -1,47 +1,43 @@
 import prisma from "../../db.js";
 
-/**
- * ADD NEW BUS (ADMIN)
- */
-export const createBus = async (req, res) => {
+export const createBus = async (req, res, next) => {
   try {
     const { busNumber, capacity, type } = req.body;
 
     const bus = await prisma.bus.create({
       data: {
-        busNumber, // e.g., "BUS-102"
-        totalSeats: capacity, // e.g., 40
-        // e.g., "LUXURY" or "AC"
+        busNumber,
+        totalSeats: capacity,
       },
     });
 
     res.status(201).json(bus);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-export const getAllBuses = async (req, res) => {
+export const getAllBuses = async (req, res, next) => {
   try {
     const buses = await prisma.bus.findMany();
     res.json(buses);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-export const updateBus = async (req, res) => {
+export const updateBus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { busNumber, capacity, type } = req.body;
+    const { busNumber, totalSeats } = req.body;
 
     const updatedBus = await prisma.bus.update({
       where: { id: parseInt(id) },
-      data: { busNumber, capacity, type },
+      data: { busNumber, totalSeats },
     });
 
     res.json(updatedBus);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };

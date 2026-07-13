@@ -60,7 +60,7 @@ export default function Login() {
           >
             Continue with Google
           </button>
-          y
+
           <div className="auth-link">
             <Link to="/signup">
               <button type="button">Go to Signup</button>

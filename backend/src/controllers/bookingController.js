@@ -6,7 +6,7 @@ export const setIO = (ioInstance) => {
   io = ioInstance;
 };
 
-export const getAllBookings = async (req, res) => {
+export const getAllBookings = async (req, res, next) => {
   try {
     const bookings = await prisma.booking.findMany({
       include: {
@@ -17,11 +17,11 @@ export const getAllBookings = async (req, res) => {
     res.status(200).json(bookings);
   } catch (error) {
     console.error("Get All Bookings error:", error.message);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-export const createBooking = async (req, res) => {
+export const createBooking = async (req, res, next) => {
   try {
     const { tripId, seats } = req.body;
     const userId = req.user.userId || req.user.id;
@@ -67,18 +67,11 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json(booking);
   } catch (error) {
-    if (error.code === "P2002") {
-      // unique constraint hit — someone else grabbed a seat first
-      return res
-        .status(409)
-        .json({ error: "One or more seats already booked" });
-    }
-    console.error("Create Booking error:", error.message);
-    res.status(500).json({ error: error.message });
+    next(error); // Pass the error to the error handling middleware
   }
 };
 
-export const getBookingById = async (req, res) => {
+export const getBookingById = async (req, res, next) => {
   try {
     const bookingId = parseInt(req.params.id);
 
@@ -95,11 +88,11 @@ export const getBookingById = async (req, res) => {
 
     res.status(200).json(booking);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-export const getMyBookings = async (req, res) => {
+export const getMyBookings = async (req, res, next) => {
   try {
     const userId = Number(req.user.id);
 
@@ -121,7 +114,6 @@ export const getMyBookings = async (req, res) => {
 
     res.json(bookings);
   } catch (error) {
-    res.status(500).json({ error: error.message });
-    console.error("Get my bookings error:", error.message);
+    next(error);
   }
 };

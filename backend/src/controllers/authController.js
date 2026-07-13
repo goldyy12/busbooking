@@ -12,7 +12,7 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
@@ -57,12 +57,11 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Register error:", error.message);
-    res.status(500).json({ error: "Could not register user" });
+    next(error); // Pass the error to the error handling middleware
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -97,12 +96,11 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error.message);
-    res.status(500).json({ error: "Could not login" });
+    next(error); // Pass the error to the error handling middleware
   }
 };
 
-export const refreshToken = async (req, res) => {
+export const refreshToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.cookies;
 
@@ -145,7 +143,7 @@ export const refreshToken = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -158,7 +156,6 @@ export const refreshToken = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Refresh token error:", error.message);
-    res.status(500).json({ error: "Could not refresh token" });
+    next(error); // Pass the error to the error handling middleware
   }
 };

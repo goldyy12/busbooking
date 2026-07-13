@@ -5,6 +5,7 @@ import http from "http";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import { errorHandler } from "./src/middlewares/errorHandler.js";
 
 import bookingRoutes from "./src/routes/bookingRoutes.js";
 import busRoutes from "./src/routes/busRoutes.js";
@@ -105,6 +106,7 @@ io.on("connection", (socket) => {
     }
   });
 });
+app.use(errorHandler);
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
