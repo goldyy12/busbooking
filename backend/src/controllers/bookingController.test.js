@@ -40,19 +40,17 @@ describe("Booking Controller Tests", () => {
   it("should return 409 if seats are already booked (unique constraint violation)", async () => {
     vi.mocked(prisma.trip.findUnique).mockResolvedValue({ id: 1 });
 
-    // simulate Prisma throwing P2002 when bookedSeat.createMany hits the unique constraint
     const p2002Error = new Error("Unique constraint failed");
     p2002Error.code = "P2002";
     vi.mocked(prisma.$transaction).mockRejectedValueOnce(p2002Error);
 
     const req = { body: { tripId: 1, seats: [1, 2] }, user: { userId: 1 } };
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
-    await createBooking(req, res);
+    const next = vi.fn();
 
-    expect(res.status).toHaveBeenCalledWith(409);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "One or more seats already booked",
-    });
+    await createBooking(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(p2002Error);
   });
 
   it("should create a booking successfully and return all booked seats", async () => {

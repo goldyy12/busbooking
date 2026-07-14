@@ -108,9 +108,12 @@ describe("Trip Controller Tests", () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
-    await createTrip(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: errorMessage });
+    const next = vi.fn();
+
+    await createTrip(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe(errorMessage);
   });
   it("should get a trip by ID successfully", async () => {
     const tripId = 1;

@@ -89,14 +89,17 @@ describe("Bus Controller Tests", () => {
     ]);
   });
   it("should handle errors when creating a bus", async () => {
-    prisma.bus.create.mockRejectedValue(new Error("Database error"));
+    const dbError = new Error("Database error");
+    prisma.bus.create.mockRejectedValue(dbError);
     const req = { body: { busNumber: 1, totalSeats: 50 } };
     const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
-    await createBus(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+    const next = vi.fn();
+
+    await createBus(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(dbError);
   });
 });
