@@ -177,18 +177,28 @@ describe("Trip Controller Tests", () => {
     });
   });
   it("should return 404 if trip is not found", async () => {
-    prisma.trip.findUnique.mockResolvedValue(null);
+    vi.mocked(prisma.trip.findUnique).mockResolvedValue(null);
 
-    const req = { params: { id: "999" } };
+    const req = {
+      body: { tripId: 999, seats: [1, 2] },
+      user: { userId: 1 },
+    };
+
     const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
 
-    await getTripById(req, res);
+    const next = vi.fn();
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ error: "Trip not found" });
+    await createBooking(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Trip not found",
+        status: 404,
+      }),
+    );
   });
   it("should search trips successfully", async () => {
     prisma.trip.findMany.mockResolvedValue([

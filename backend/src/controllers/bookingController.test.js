@@ -26,15 +26,34 @@ describe("Booking Controller Tests", () => {
     vi.clearAllMocks();
   });
 
-  it("should return 404 if trip is not found", async () => {
-    vi.mocked(prisma.trip.findUnique).mockResolvedValue(null);
+  it("should pass seat conflict error to next", async () => {
+    vi.mocked(prisma.trip.findUnique).mockResolvedValue({ id: 1 });
 
-    const req = { body: { tripId: 999, seats: [1, 2] }, user: { userId: 1 } };
-    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
-    await createBooking(req, res);
+    const p2002Error = new Error("Unique constraint failed");
+    p2002Error.code = "P2002";
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ error: "Trip not found" });
+    vi.mocked(prisma.$transaction).mockRejectedValueOnce(p2002Error);
+
+    const req = {
+      body: { tripId: 1, seats: [1, 2] },
+      user: { userId: 1 },
+    };
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+
+    const next = vi.fn();
+
+    await createBooking(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          "One or more of those seats were just booked by someone else. Please choose different seats.",
+      }),
+    );
   });
 
   it("should return 409 if seats are already booked (unique constraint violation)", async () => {
@@ -42,17 +61,25 @@ describe("Booking Controller Tests", () => {
 
     const p2002Error = new Error("Unique constraint failed");
     p2002Error.code = "P2002";
+
     vi.mocked(prisma.$transaction).mockRejectedValueOnce(p2002Error);
 
-    const req = { body: { tripId: 1, seats: [1, 2] }, user: { userId: 1 } };
-    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+    const req = {
+      body: { tripId: 1, seats: [1, 2] },
+      user: { userId: 1 },
+    };
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+
     const next = vi.fn();
 
     await createBooking(req, res, next);
 
     expect(next).toHaveBeenCalledWith(p2002Error);
   });
-
   it("should create a booking successfully and return all booked seats", async () => {
     vi.mocked(prisma.trip.findUnique).mockResolvedValue({ id: 1 });
 
