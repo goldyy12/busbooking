@@ -240,6 +240,11 @@ describe("Trip Controller Tests", () => {
 
     await searchTrips(req, res, next);
 
-    expect(next).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "At least one search parameter is required",
+    });
+
+    expect(next).not.toHaveBeenCalled();
   });
 });
