@@ -14,6 +14,12 @@ form {
   display: flex;
   flex-direction: column;
 }
+.auth-divider {
+  text-align: center;
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--stone);
+}
 
 /* ---------- Page ---------- */
 .auth-container {

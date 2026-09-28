@@ -3,6 +3,7 @@ import api from "../Api.jsx";
 import { useNavigate } from "react-router-dom";
 import "../styles/pages.css";
 import ChatbotWidget from "../components/ChatbotWidget.jsx";
+import "../styles/navbar.css";
 
 const HomePage = () => {
   const cities = [

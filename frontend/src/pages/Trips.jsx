@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../Api";
 import "../styles/pages.css";
+import "../styles/navbar.css";
 
 const TripsPage = () => {
   const [trips, setTrips] = useState([]);

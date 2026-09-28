@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../Api.jsx";
 import { useNavigate } from "react-router-dom";
 import "../styles/pages.css";
+import "../styles/navbar.css";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);

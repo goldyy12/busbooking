@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import api from "../Api";
 import "../styles/auth.css";
-
+import "../styles/navbar.css";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,7 +52,7 @@ export default function Login() {
           <button type="submit" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
-          <div className="auth-divider">or</div>
+          <div className="auth-divider"></div>
           <button
             type="button"
             onClick={handleGoogleLogin}

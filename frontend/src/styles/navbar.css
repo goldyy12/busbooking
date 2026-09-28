@@ -32,7 +32,8 @@
   --r-xxxl: 32px;
   --r-full: 100px;
 
-  --font: "Optimistic VF", "Montserrat", Helvetica, Arial, "Noto Sans", sans-serif;
+  --font:
+    "Optimistic VF", "Montserrat", Helvetica, Arial, "Noto Sans", sans-serif;
 }
 
 body {
@@ -45,7 +46,9 @@ body {
   letter-spacing: -0.16px;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: var(--font);
   font-weight: 500;
   font-feature-settings: "ss01", "ss02";
@@ -102,7 +105,13 @@ h1, h2, h3 {
 }
 
 @media (max-width: 800px) {
-  .navbar { padding: 0 16px; }
-  .navbar ul { gap: 4px; }
-  .navbar li { padding: 6px 12px; }
+  .navbar {
+    padding: 0 16px;
+  }
+  .navbar ul {
+    gap: 4px;
+  }
+  .navbar li {
+    padding: 6px 12px;
+  }
 }

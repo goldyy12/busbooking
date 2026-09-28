@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import api from "../Api";
+import "../styles/navbar.css";
 import "../styles/trip.css";
 
 const TripDetails = () => {
