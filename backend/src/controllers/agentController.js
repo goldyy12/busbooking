@@ -1,6 +1,9 @@
 import { searchTripsCore, getTripByIdCore } from "../services/tripService.js";
 import { bookTripCore } from "../services/bookingService.js";
-import prisma from "../../db.js";
+
+const MODEL = "openai/gpt-oss-20b";
+const MAX_STEPS = 8;
+const MAX_SEATS_PER_BOOKING = 6;
 
 const tools = [
   {
@@ -57,21 +60,95 @@ const tools = [
   },
 ];
 
+const buildSystemPrompt = (
+  today,
+) => `You are a bus booking assistant for a Kosovo bus service. Today's date is ${today}.
+
+Rules:
+- Use get_trip_details to check a trip's price before asking the user for confirmation.
+- Once the user has seen the price and clearly agrees (for example "yes", "proceed", "confirm"), call book_trip immediately. Do not call get_trip_details again and do not ask for confirmation a second time.
+- After the booking succeeds, ask whether the user wants a return ticket. If yes, ask for the return date, search for return trips, show the price, and ask for confirmation before booking the return trip.
+- If no return trip is found on that date, tell the user that no return trips are available on that date and continue with the original booking.
+- Payment can be made in person or on the website.
+- Buses do not operate on Sundays.
+- If asked about the website, explain that it is a bus booking service for Kosovo and mention Kosovo cities.
+- Keep a professional tone. Do not use emojis.
+-If the user says thank you say "You're welcome!" and offer further assistance if not say have a nice trip.`;
+
+// Server-side guard: the model may only book after the latest user message is an affirmative.
+const AFFIRMATIVE =
+  /\b(yes|yeah|yep|ok|okay|sure|proceed|confirm|confirmed|book it|go ahead|please do|po|prano|konfirmo|vazhdo|në rregull|ne rregull)\b/i;
+
+const userConfirmed = (messages) => {
+  const lastUser = [...messages].reverse().find((m) => m.role === "user");
+  return Boolean(lastUser && AFFIRMATIVE.test(lastUser.content));
+};
+
+const executeTool = async (toolCall, { userId, safeMessages }) => {
+  const name = toolCall.function.name;
+  const args = JSON.parse(toolCall.function.arguments || "{}");
+
+  if (name === "search_trips") {
+    const results = await searchTripsCore({
+      from: args.origin,
+      to: args.destination,
+      date: args.date,
+    });
+    return results.length ? results : { message: "No trips found." };
+  }
+
+  if (name === "get_trip_details") {
+    if (!Number.isInteger(args.tripId)) throw new Error("Invalid tripId");
+    return await getTripByIdCore(args.tripId);
+  }
+
+  if (name === "book_trip") {
+    if (!Number.isInteger(args.tripId)) throw new Error("Invalid tripId");
+    if (
+      !Array.isArray(args.seats) ||
+      args.seats.length === 0 ||
+      args.seats.length > MAX_SEATS_PER_BOOKING ||
+      !args.seats.every((s) => Number.isInteger(s) && s > 0)
+    ) {
+      throw new Error("Invalid seats");
+    }
+    if (!userConfirmed(safeMessages)) {
+      return {
+        error:
+          "The user has not confirmed the booking yet. Show the price and ask for confirmation first.",
+      };
+    }
+    const result = await bookTripCore({
+      tripId: args.tripId,
+      seats: args.seats,
+      userId,
+    });
+    console.log("BOOK_TRIP SUCCEEDED", result);
+    return result;
+  }
+
+  return { error: `Unknown tool: ${name}` };
+};
+
 export const handleAgentChat = async (req, res, next) => {
   try {
-    const userMessage = req.body.messages;
     const userId = req.user.id;
     const today = new Date().toISOString().split("T")[0];
 
-    let messages = [
-      {
-        role: "system",
-        content: `You are a bus booking assistant. Today's date is ${today}. Use get_trip_details to check a trip's price before confirming a booking. Once the user has been shown the trip price and clearly agrees (e.g. says "yes", "proceed", "confirm", or similar), call book_trip immediately in your next response. Do not call get_trip_details again or ask for confirmation a second time once the user has already agreed.If user accepts ask if he wants a return ticket and if yes, ask for the return date and then search for return trips. If a return trip is found, show the user the price and ask for confirmation before booking the return trip. If no return trip is found, inform the user that no return trips are available on that date and if they dont ask just procceed with the booking,also do not use emojis during chat make it look proffessional and if they ask about the webpage say that its bus for kosovo country and say kosovo cities also if they ask about payment say that i can be done in person also in the website and in sunday bussess do not work`,
-      },
-      ...userMessage,
-    ];
+    // Only accept plain user/assistant text from the client.
+    const safeMessages = (req.body.messages ?? []).filter(
+      (m) =>
+        ["user", "assistant"].includes(m.role) && typeof m.content === "string",
+    );
 
-    const MAX_STEPS = 8;
+    if (safeMessages.length === 0) {
+      return res.status(400).json({ error: "No messages provided" });
+    }
+
+    const messages = [
+      { role: "system", content: buildSystemPrompt(today) },
+      ...safeMessages,
+    ];
 
     for (let step = 0; step < MAX_STEPS; step++) {
       const response = await fetch(
@@ -82,78 +159,30 @@ export const handleAgentChat = async (req, res, next) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           },
-          body: JSON.stringify({
-            model: "openai/gpt-oss-20b",
-            tools,
-            messages,
-          }),
+          body: JSON.stringify({ model: MODEL, tools, messages }),
         },
       );
 
       const data = await response.json();
 
-      if (!data.choices) {
+      if (!response.ok || !data.choices) {
         console.error("Groq API error:", data);
-        return res
-          .status(502)
-          .json({ error: "Upstream model error", details: data });
+        return res.status(502).json({ error: "Upstream model error" });
       }
 
       const message = data.choices[0].message;
-      // ... rest unchanged
 
-      if (!message.tool_calls) {
+      if (!message.tool_calls?.length) {
         return res.status(200).json({ reply: message.content });
       }
 
       messages.push(message); // record the assistant's tool-call turn
 
-      const MAX_STEPS = 8;
-
-      const safeMessages = (req.body.messages ?? []).filter(
-        (m) =>
-          ["user", "assistant"].includes(m.role) &&
-          typeof m.content === "string",
-      );
-
       for (const toolCall of message.tool_calls) {
         let toolResultContent;
         try {
-          const args = JSON.parse(toolCall.function.arguments || "{}");
-          const name = toolCall.function.name;
-
-          if (name === "search_trips") {
-            const results = await searchTripsCore({
-              from: args.origin,
-              to: args.destination,
-              date: args.date,
-            });
-            toolResultContent = JSON.stringify(
-              results.length ? results : { message: "No trips found." },
-            );
-          } else if (name === "get_trip_details") {
-            toolResultContent = JSON.stringify(
-              await getTripByIdCore(args.tripId),
-            );
-          } else if (name === "book_trip") {
-            if (
-              !Array.isArray(args.seats) ||
-              !args.seats.every(Number.isInteger)
-            ) {
-              throw new Error("Invalid seats");
-            }
-            const result = await bookTripCore({
-              tripId: args.tripId,
-              seats: args.seats,
-              userId,
-            });
-            console.log("BOOK_TRIP SUCCEEDED", result);
-            toolResultContent = JSON.stringify(result);
-          } else {
-            toolResultContent = JSON.stringify({
-              error: `Unknown tool: ${name}`,
-            });
-          }
+          const result = await executeTool(toolCall, { userId, safeMessages });
+          toolResultContent = JSON.stringify(result);
         } catch (err) {
           console.error(`Tool ${toolCall.function.name} failed:`, err);
           toolResultContent = JSON.stringify({ error: err.message });
