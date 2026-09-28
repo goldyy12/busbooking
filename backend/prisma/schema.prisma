@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String?
+  role      Role      @default(USER)
+  googleId  String?   @unique
+  bookings  Booking[]
+  refreshTokens RefreshToken[]
+  createdAt DateTime  @default(now())
+}
+
+model Bus {
+  id         Int    @id @default(autoincrement())
+  busNumber  String
+  totalSeats Int
+  trips      Trip[]
+}
+
+model Trip {
+  id       Int       @id @default(autoincrement())
+  from     String
+  to       String
+  date     DateTime
+  price    Float
+  busId    Int
+  bus      Bus       @relation(fields: [busId], references: [id])
+  bookings Booking[]
+  bookedSeats BookedSeat[]
+}
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  tripId      Int
+  status      BookingStatus @default(PENDING)
+  user        User          @relation(fields: [userId], references: [id])
+  trip        Trip          @relation(fields: [tripId], references: [id])
+  bookedSeats BookedSeat[]
+  createdAt   DateTime      @default(now())
+}
+
+model BookedSeat {
+  id         Int     @id @default(autoincrement())
+  tripId     Int
+  seatNumber Int
+  bookingId  Int
+  trip       Trip    @relation(fields: [tripId], references: [id])
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, seatNumber]) // <- this is the actual double-booking guard
+}
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  tokenHash  String   @unique   // hash of the random token, not the raw value
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  familyId   String              // groups tokens from the same login session
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+}

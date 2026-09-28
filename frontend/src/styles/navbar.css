@@ -1,0 +1,108 @@
+/* ==========================================================
+   Navbar + global design tokens (Meta style)
+   Import this one on every page — the other files use its variables.
+   ========================================================== */
+
+:root {
+  --primary: #0064e0;
+  --primary-deep: #0457cb;
+  --fb-blue: #1876f2;
+  --on-primary: #ffffff;
+
+  --canvas: #ffffff;
+  --surface-soft: #f1f4f7;
+
+  --ink-deep: #0a1317;
+  --ink: #1c1e21;
+  --charcoal: #444950;
+  --steel: #5d6c7b;
+  --stone: #8595a4;
+  --disabled: #bcc0c4;
+
+  --hairline: #ced0d4;
+  --hairline-soft: #dee3e9;
+
+  --success: #31a24c;
+  --warning: #f7b928;
+  --critical: #e41e3f;
+
+  --r-lg: 8px;
+  --r-xl: 16px;
+  --r-xxl: 24px;
+  --r-xxxl: 32px;
+  --r-full: 100px;
+
+  --font: "Optimistic VF", "Montserrat", Helvetica, Arial, "Noto Sans", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink-deep);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.16px;
+}
+
+h1, h2, h3 {
+  font-family: var(--font);
+  font-weight: 500;
+  font-feature-settings: "ss01", "ss02";
+  color: var(--ink-deep);
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  box-sizing: border-box;
+  padding: 0 32px;
+  background: var(--canvas);
+  color: var(--ink-deep);
+  border-bottom: 1px solid var(--hairline-soft);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.navbar h1 {
+  cursor: pointer;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar li {
+  cursor: pointer;
+  padding: 8px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.14px;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+.navbar li:hover {
+  text-decoration: none;
+  background: var(--surface-soft);
+}
+
+@media (max-width: 800px) {
+  .navbar { padding: 0 16px; }
+  .navbar ul { gap: 4px; }
+  .navbar li { padding: 6px 12px; }
+}

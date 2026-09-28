@@ -1,0 +1,16 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 20
+
+scenarios:
+  - name: "Admin Bus Creation Test"
+    flow:
+      - post:
+          url: "/api/buses"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMyLCJuYW1lIjoiZ29sZCIsImVtYWlsIjoiZGlhcnNlbG1hbmkxMEBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODEyMDk3MzgsImV4cCI6MTc4MTIxMzMzOH0.tB0CA7B3Ydlk_n3CC73T0MbdvWe-0928Y_lc76pejDg"
+          json:
+            busNumber: "BUS-{{ $randomString() }}"
+            capacity: 50

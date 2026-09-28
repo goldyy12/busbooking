@@ -1,0 +1,78 @@
+.admin-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.admin-container h1,
+.admin-container h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Forms */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-form input,
+.admin-form select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.admin-form input:focus,
+.admin-form select:focus {
+  border-color: #4f46e5;
+  outline: none;
+}
+
+/* Buttons */
+.admin-form button,
+.admin-action-btn {
+  padding: 10px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.admin-form button:hover,
+.admin-action-btn:hover {
+  background: #4338ca;
+}
+
+/* Messages */
+.admin-message {
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.admin-message.success {
+  color: green;
+}
+
+.admin-message.error {
+  color: red;
+}
+
+/* Dashboard */
+.admin-dashboard {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+}

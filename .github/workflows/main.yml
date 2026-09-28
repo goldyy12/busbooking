@@ -1,0 +1,40 @@
+name: Bus Booking CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Kjo parandalon gabimin e Prismës duke i dhënë një vlerë string sa për të kaluar testet e izoluara
+  DATABASE_URL: "postgresql://mockuser:mockpass@localhost:5432/mockdb"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        timeout-minutes: 10
+        run: npm ci --no-audit --legacy-peer-deps --ignore-scripts
+
+      - name: Setup Prisma Client
+
+        run: npx prisma generate
+
+      - name: Run Unit Tests
+
+        run: npm test -- --run

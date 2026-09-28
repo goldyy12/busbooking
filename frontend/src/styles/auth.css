@@ -1,0 +1,135 @@
+/* ==========================================================
+   Auth pages: login / register (Meta style)
+   Uses variables defined in navbar.css
+   ========================================================== */
+
+/* Global reset (kept from your original file) */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Page ---------- */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--surface-soft);
+}
+
+/* ---------- Card ---------- */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--canvas);
+  padding: 40px 32px;
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-xxxl);
+  box-shadow: none;
+}
+
+.auth-card h1 {
+  text-align: center;
+  margin-bottom: 28px;
+  font-size: 36px;
+  line-height: 1.28;
+  font-weight: 500;
+  color: var(--ink-deep);
+}
+
+/* ---------- Inputs ---------- */
+.auth-card input {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-family: var(--font);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  outline: none;
+}
+
+.auth-card input::placeholder {
+  color: var(--stone);
+}
+
+.auth-card input:focus {
+  border: 2px solid var(--fb-blue);
+  padding: 11px;
+}
+
+/* ---------- Primary button (cobalt pill) ---------- */
+.auth-card button {
+  width: 100%;
+  height: 48px;
+  padding: 14px 30px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.14px;
+  color: var(--on-primary);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: background 0.2s ease-out;
+}
+
+.auth-card button:hover:not(:disabled),
+.auth-card button:active:not(:disabled) {
+  background: var(--primary-deep);
+}
+
+.auth-card button:disabled {
+  background: var(--disabled);
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* ---------- Secondary link button (outlined pill) ---------- */
+.auth-link {
+  margin-top: 12px;
+}
+
+.auth-link button {
+  height: 48px;
+  padding: 12px 28px;
+  background: transparent;
+  color: var(--ink-deep);
+  border: 2px solid var(--ink-deep);
+}
+
+.auth-link button:hover:not(:disabled),
+.auth-link button:active:not(:disabled) {
+  background: var(--surface-soft);
+}
+
+/* ---------- Error ---------- */
+.auth-error {
+  margin-top: 12px;
+  color: var(--critical);
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: -0.14px;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 32px 20px;
+  }
+  .auth-card h1 {
+    font-size: 28px;
+  }
+}

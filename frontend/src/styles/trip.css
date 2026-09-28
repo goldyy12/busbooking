@@ -1,0 +1,182 @@
+/* ==========================================================
+   Trip details / seat selection page (Meta style)
+   Uses variables defined in navbar.css
+   ========================================================== */
+
+.trip-container {
+  padding: 32px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.main-container {
+  background: var(--canvas);
+  min-height: 100vh;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+/* Left: ticket summary (sticky purchase rail) */
+.ticket-info-section {
+  flex: 0 0 340px;
+  background: var(--canvas);
+  padding: 24px;
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-xl);
+  box-shadow: rgba(20, 22, 26, 0.3) 0 1px 4px 0;
+  position: sticky;
+  top: 88px;
+}
+
+/* Right: seat picker */
+.seat-selection-section {
+  background: var(--surface-soft);
+  padding: 32px;
+  border-radius: var(--r-xxxl);
+}
+
+/* ---------- Seats ---------- */
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 60px);
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.seat {
+  padding: 12px 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seat.available {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.seat.available:hover {
+  border-color: var(--ink-deep);
+}
+
+.seat.selected {
+  background: var(--ink-deep);
+  border-color: var(--ink-deep);
+  color: #fff;
+}
+
+.seat.booked {
+  background: var(--hairline-soft);
+  border-color: var(--hairline-soft);
+  color: var(--disabled);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.seat.locked {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: var(--ink-deep);
+  cursor: not-allowed;
+}
+
+/* ---------- Summary rows ---------- */
+.summary-details {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  letter-spacing: -0.14px;
+  color: var(--steel);
+}
+
+.summary-item span:last-child {
+  font-weight: 700;
+  color: var(--ink-deep);
+}
+
+.total-price-row {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-price-label {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.total-price-value {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--ink-deep);
+}
+
+/* ---------- Confirm / Book button (cobalt buy CTA) ---------- */
+.confirm-btn-wrapper {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.book-btn {
+  width: 100%;
+  padding: 14px 30px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.14px;
+  color: var(--on-primary);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--r-full);
+  cursor: pointer;
+}
+
+.book-btn:hover,
+.book-btn:active {
+  background: var(--primary-deep);
+}
+
+.book-btn:disabled {
+  background: var(--disabled);
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 800px) {
+  .main-container {
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+  }
+  .ticket-info-section {
+    position: static;
+    width: 100%;
+    max-width: 420px;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+  }
+  .seat-selection-section {
+    width: 100%;
+    max-width: 420px;
+    box-sizing: border-box;
+    padding: 24px 16px;
+  }
+}
