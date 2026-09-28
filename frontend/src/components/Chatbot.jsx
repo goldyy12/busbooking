@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../Api.jsx";
 import "../styles/chatbot.css";
 
-export default function Chatbot(onClose) {
+export default function Chatbot({ onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
