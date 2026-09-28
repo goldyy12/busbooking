@@ -34,7 +34,15 @@ export const createTrip = async (req, res, next) => {
 export const searchTrips = async (req, res, next) => {
   try {
     const { from, to, date } = req.query;
+    if (!from && !to && !date) {
+      return res
+        .status(400)
+        .json({ error: "At least one search parameter is required" });
+    }
     const trips = await searchTripsCore({ from, to, date });
+    if (trips.length === 0) {
+      return res.status(404).json({ error: "No trips found" });
+    }
     res.status(200).json(trips);
   } catch (error) {
     next(error);
