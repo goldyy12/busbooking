@@ -48,12 +48,7 @@ describe("Booking Controller Tests", () => {
 
     await createBooking(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          "One or more of those seats were just booked by someone else. Please choose different seats.",
-      }),
-    );
+    expect(next).toHaveBeenCalledWith(p2002Error);
   });
 
   it("should return 409 if seats are already booked (unique constraint violation)", async () => {

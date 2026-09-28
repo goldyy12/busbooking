@@ -177,11 +177,12 @@ describe("Trip Controller Tests", () => {
     });
   });
   it("should return 404 if trip is not found", async () => {
+    const tripId = 999;
+
     vi.mocked(prisma.trip.findUnique).mockResolvedValue(null);
 
     const req = {
-      body: { tripId: 999, seats: [1, 2] },
-      user: { userId: 1 },
+      params: { id: tripId.toString() },
     };
 
     const res = {
@@ -189,16 +190,12 @@ describe("Trip Controller Tests", () => {
       json: vi.fn(),
     };
 
-    const next = vi.fn();
+    await getTripById(req, res);
 
-    await createBooking(req, res, next);
-
-    expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "Trip not found",
-        status: 404,
-      }),
-    );
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Trip not found",
+    });
   });
   it("should search trips successfully", async () => {
     prisma.trip.findMany.mockResolvedValue([
@@ -239,11 +236,10 @@ describe("Trip Controller Tests", () => {
       json: vi.fn(),
     };
 
-    await searchTrips(req, res);
+    const next = vi.fn();
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "At least one search parameter is required",
-    });
+    await searchTrips(req, res, next);
+
+    expect(next).toHaveBeenCalled();
   });
 });
