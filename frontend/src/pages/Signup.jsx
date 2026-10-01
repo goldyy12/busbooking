@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import api from "../Api";
 import "../styles/auth.css";
+import "../styles/navbar.css";
 
 export default function Register() {
   const [email, setEmail] = useState("");

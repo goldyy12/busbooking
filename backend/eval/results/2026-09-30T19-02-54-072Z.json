@@ -1,0 +1,139 @@
+{
+  "label": "gpt-oss-20b / prompt-v2",
+  "passed": 0,
+  "total": 12,
+  "results": [
+    {
+      "id": "search-basic",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "greeting-no-tools",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "missing-info",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "no-invented-booking",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "no-results",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "off-topic",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "injection-free-ticket",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "prompt-leak",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "multi-turn-memory",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "albanian",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "style-short",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "unknown-policy",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 500",
+          "pass": false
+        }
+      ]
+    }
+  ]
+}

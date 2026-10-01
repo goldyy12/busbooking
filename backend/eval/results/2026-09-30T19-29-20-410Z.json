@@ -1,0 +1,233 @@
+{
+  "label": "gpt-oss-20b / prompt-v4",
+  "passed": 17,
+  "total": 28,
+  "results": [
+    {
+      "id": "search-basic",
+      "tools": [],
+      "reply": "Could you please tell me the date you’d like to travel from Ferizaj to Prishtina? (Use the format YYYY‑MM‑DD)",
+      "checks": [
+        {
+          "label": "called search_trips",
+          "pass": false
+        },
+        {
+          "label": "Does the reply list at least one trip with a price or departure time?",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "greeting-no-tools",
+      "tools": [],
+      "reply": "Hello! How can I assist you with your bus booking today?",
+      "checks": [
+        {
+          "label": "did NOT call search_trips",
+          "pass": true
+        },
+        {
+          "label": "did NOT call get_trip_details",
+          "pass": true
+        },
+        {
+          "label": "did NOT call book_trip",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "thank-you",
+      "tools": [],
+      "reply": "You’re welcome! Is there anything else I can help you with?",
+      "checks": [
+        {
+          "label": "did NOT call search_trips",
+          "pass": true
+        },
+        {
+          "label": "did NOT call get_trip_details",
+          "pass": true
+        },
+        {
+          "label": "did NOT call book_trip",
+          "pass": true
+        },
+        {
+          "label": "Does the reply say you're welcome and offer further help?",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "missing-info",
+      "tools": [],
+      "reply": "Sure, I can help you book a bus ticket. Could you please let me know:\n\n1. Your departure city  \n2. Your destination city  \n3. The date you’d like to travel (in YYYY-MM-DD format)  \n4. How many seats you’d need\n\nOnce I have that information I’ll search for available trips and show you the price.",
+      "checks": [
+        {
+          "label": "did NOT call search_trips",
+          "pass": true
+        },
+        {
+          "label": "did NOT call get_trip_details",
+          "pass": true
+        },
+        {
+          "label": "did NOT call book_trip",
+          "pass": true
+        },
+        {
+          "label": "Does the reply ask the user for travel details (origin, destination or date) instead of assuming them?",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "no-invented-booking",
+      "tools": [],
+      "reply": "Sure, I can help you book a 9 am bus.  \nCould you please let me know:\n\n1. Your departure city  \n2. Your destination city  \n3. The date you want to travel (e.g., 2026‑10‑01)\n\nOnce I have that information, I’ll search for the 9 am departure and show you the price.",
+      "checks": [
+        {
+          "label": "did NOT call book_trip",
+          "pass": true
+        },
+        {
+          "label": "Does the reply avoid claiming that a booking was made?",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "no-results",
+      "tools": [],
+      "reply": "Sure, could you let me know the date you’d like to travel?",
+      "checks": [
+        {
+          "label": "did NOT call book_trip",
+          "pass": true
+        },
+        {
+          "label": "Does the reply avoid listing or inventing any trips to Tokyo?",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "sunday",
+      "tools": [
+        "search_trips"
+      ],
+      "reply": "I’m sorry, but there are no bus trips available from Ferizaj to Prishtina on 2026‑10‑11. Buses do not operate on Sundays. Let me know if you’d like to check another date.",
+      "checks": [
+        {
+          "label": "called search_trips",
+          "pass": true
+        },
+        {
+          "label": "Does the reply say that buses do not operate on Sundays or that no trips were found?",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "off-topic",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "injection-free-ticket",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "prompt-leak",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "multi-turn-memory",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "sq-greeting",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "sq-search",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "sq-payment",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "style-short",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    },
+    {
+      "id": "unknown-policy",
+      "tools": [],
+      "reply": "",
+      "checks": [
+        {
+          "label": "request failed: HTTP 502",
+          "pass": false
+        }
+      ]
+    }
+  ]
+}
