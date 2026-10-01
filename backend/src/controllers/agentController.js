@@ -6,22 +6,6 @@ const MAX_STEPS = 8;
 const MAX_SEATS_PER_BOOKING = 6;
 const TZ = "Europe/Belgrade"; // Kosovo time
 
-const fetchWithRetry = async (url, options, retries = 3, backoff = 500) => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await fetch(url, options);
-      if (res.ok) return res;
-      if (res.status !== 502 && res.status !== 503 && res.status !== 429) {
-        return res; // Don't retry standard 4xx client errors
-      }
-    } catch (e) {
-      if (i === retries - 1) throw e;
-    }
-    await new Promise((r) => setTimeout(r, backoff * Math.pow(2, i)));
-  }
-  return fetch(url, options);
-};
-
 const getDateInfo = () => {
   const now = new Date();
   const today = now.toLocaleDateString("en-CA", { timeZone: TZ }); // YYYY-MM-DD
@@ -208,7 +192,7 @@ export const handleAgentChat = async (req, res, next) => {
     ];
 
     for (let step = 0; step < MAX_STEPS; step++) {
-      const response = await fetchWithRetry(
+      const response = await fetch(
         "https://api.groq.com/openai/v1/chat/completions",
         {
           method: "POST",
