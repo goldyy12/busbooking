@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../Api.jsx";
 import { useNavigate } from "react-router-dom";
 import "../styles/pages.css";
@@ -10,7 +10,7 @@ const MyBookings = () => {
 
   const navigate = useNavigate();
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -29,10 +29,11 @@ const MyBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [fetchBookings]);
 
   if (loading) return <p>Loading...</p>;
 

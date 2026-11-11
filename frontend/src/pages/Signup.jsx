@@ -13,7 +13,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -27,8 +27,7 @@ export default function Register() {
         username,
       });
 
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
+      login(res.data.token);
       navigate("/homepage");
     } catch (err) {
       setError(err.response?.data?.error || "Register failed");

@@ -49,6 +49,24 @@ export async function bookTripCore({ tripId, seats, userId }) {
   }
 
   const { booking, allBookedSeats } = await prisma.$transaction(async (tx) => {
+    // Seats another user is currently holding can't be booked from under them.
+    const heldByOthers = await tx.seatLock.findMany({
+      where: {
+        tripId,
+        seatNumber: { in: requestedSeats },
+        userId: { not: userId },
+        expiresAt: { gt: new Date() },
+      },
+      select: { seatNumber: true },
+    });
+    if (heldByOthers.length) {
+      const error = new Error(
+        `Seat(s) ${heldByOthers.map((s) => s.seatNumber).join(", ")} are being held by another user`,
+      );
+      error.status = 409;
+      throw error;
+    }
+
     const newBooking = await tx.booking.create({
       data: {
         tripId,
@@ -63,6 +81,11 @@ export async function bookTripCore({ tripId, seats, userId }) {
         seatNumber,
         bookingId: newBooking.id,
       })),
+    });
+
+    // The seats are booked now, so any holds on them (ours or expired) go.
+    await tx.seatLock.deleteMany({
+      where: { tripId, seatNumber: { in: requestedSeats } },
     });
 
     const all = await tx.bookedSeat.findMany({

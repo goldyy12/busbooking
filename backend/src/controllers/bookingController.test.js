@@ -80,6 +80,10 @@ describe("Booking Controller Tests", () => {
 
     vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback) => {
       const mockDbInTx = {
+        seatLock: {
+          findMany: vi.fn().mockResolvedValue([]),
+          deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+        },
         booking: {
           create: vi.fn().mockResolvedValue({
             id: 123,

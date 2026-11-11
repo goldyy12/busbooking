@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./AuthContext";
 import axios from "axios";
+import { reconnectSocket } from "../socket";
 
 function getUserFromToken() {
   const token = localStorage.getItem("token");
@@ -34,8 +35,21 @@ export function AuthProvider({ children }) {
     localStorage.setItem("token", token);
     setUser(jwtDecode(token));
   };
+  // Reconnect the socket whenever the logged-in user changes, so seat locks
+  // are attributed to the right account (skip the very first render).
+  const userId = user?.userId ?? null;
+  const firstRender = useRef(true);
   useEffect(() => {
-    if (!user) {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    reconnectSocket();
+  }, [userId]);
+
+  // On first load, try to restore the session from the refresh cookie.
+  useEffect(() => {
+    if (!getUserFromToken()) {
       axios
         .post(
           `${import.meta.env.VITE_API_URL}/api/auth/refresh`,

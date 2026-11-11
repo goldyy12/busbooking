@@ -66,10 +66,8 @@ cd busbooking
 docker compose up --build
 ```
 
-This starts:
-- Frontend
-- Backend
-- PostgreSQL
+This starts the frontend and the backend. PostgreSQL is not included in
+`docker-compose.yml`; point `DATABASE_URL` at your own database.
 
 ---
 
@@ -78,11 +76,23 @@ This starts:
 Create a `.env` file inside the backend folder:
 
 ```env
-DATABASE_URL=postgresql://user:password@postgres:5432/bus_booking
+DATABASE_URL=postgresql://user:password@localhost:5432/bus_booking
 JWT_SECRET=your_secret_key
-REDIS_URL=redis://redis:6379
-PORT=3000
+SESSION_SECRET=another_secret
+PORT=5000
+FRONTEND_URL=http://localhost:5173
+
+# Google login (optional)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+
+# AI booking assistant (optional)
+GROQ_API_KEY=
+AGENT_MODEL=openai/gpt-oss-20b
 ```
+
+The frontend needs `VITE_API_URL` (e.g. `http://localhost:5000`) in `frontend/.env`.
 
 ---
 
@@ -117,7 +127,7 @@ npm run dev
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
 ---
@@ -125,24 +135,50 @@ npm start
 # Real-Time Features
 
 Socket.IO is used to:
-- Sync bookings instantly
-- Update seat availability live
-- Prevent double booking conflicts
+- Sync bookings instantly (including bookings made through the AI assistant)
+- Show which seats other users are currently selecting
+
+How seats are protected:
+- A booked seat is unique per trip in the database (`BookedSeat` has a
+  unique `tripId + seatNumber`), so a seat can never be double-booked.
+- While choosing, a logged-in user can hold up to 6 seats. Holds are stored
+  in the `SeatLock` table, expire after 5 minutes, and are released when the
+  user disconnects. Other users cannot book a seat someone else is holding.
+- Anyone can watch a trip's seat map; only logged-in users can hold seats.
+
+Because holds live in PostgreSQL they survive restarts and are shared by
+all backend instances. Live broadcasts only reach clients connected to the
+same instance; running several instances would need a Socket.IO adapter.
 
 ---
 
 # Testing
 
-Run backend tests:
+Unit tests (no database needed):
 
 ```bash
+cd backend
 npm test
 ```
+
+Integration tests run against a real PostgreSQL database. Use a throwaway
+database whose name contains `test` — its tables are wiped:
+
+```bash
+cd backend
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/busbooking_test
+npx prisma migrate deploy
+npm run test:integration
+```
+
+CI (GitHub Actions) runs migrations, unit tests and integration tests against
+a PostgreSQL service, plus frontend lint and build, on every push and pull
+request to `master`.
 
 Performance testing:
 
 ```bash
-artillery run load-test.yml
+npx artillery run tests/load-test.yml
 ```
 
 ---

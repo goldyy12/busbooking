@@ -8,15 +8,33 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  # Kjo parandalon gabimin e Prismës duke i dhënë një vlerë string sa për të kaluar testet e izoluara
-  DATABASE_URL: "postgresql://mockuser:mockpass@localhost:5432/mockdb"
 
 jobs:
-  build-and-test:
+  backend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: busbooking_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/busbooking_test"
+      JWT_SECRET: "ci-test-secret"
+      SESSION_SECRET: "ci-session-secret"
 
     steps:
       - name: Checkout code
@@ -26,15 +44,52 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
         timeout-minutes: 10
         run: npm ci --no-audit --legacy-peer-deps --ignore-scripts
 
-      - name: Setup Prisma Client
-
+      - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Run Unit Tests
+      - name: Apply migrations to the test database
+        run: npx prisma migrate deploy
 
+      - name: Check schema and migrations are in sync
+        run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+      - name: Unit tests
         run: npm test -- --run
+
+      - name: Integration tests (real PostgreSQL)
+        run: npm run test:integration
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: "http://localhost:5000"

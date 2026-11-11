@@ -23,11 +23,15 @@ const TripDetails = () => {
   useEffect(() => {
     if (!id) return;
 
-    if (!socket.connected) {
+    // (Re)join the trip room on every connect, including reconnects after
+    // a login/logout or a dropped connection.
+    const joinTrip = () => socket.emit("join-trip", parseInt(id));
+    socket.on("connect", joinTrip);
+    if (socket.connected) {
+      joinTrip();
+    } else {
       socket.connect();
     }
-
-    socket.emit("join-trip", parseInt(id));
 
     const handleSeatBooked = (data) => {
       console.log("📌 seat-booked event received:", data);
@@ -71,6 +75,7 @@ const TripDetails = () => {
     // Cleanup
     return () => {
       console.log("🧹 Cleaning up Socket.IO listeners for trip:", id);
+      socket.off("connect", joinTrip);
       socket.off("seat-booked", handleSeatBooked);
       socket.off("seat-locked", handleSeatLocked);
       socket.off("seat-unlocked", handleSeatUnlocked);
