@@ -11,7 +11,7 @@ export const protect = (req, res, next) => {
     }
 
     req.user = {
-      id: decoded.id || decoded.userId || decoded.sub,
+      id: decoded.userId,
       role: decoded.role,
     };
 

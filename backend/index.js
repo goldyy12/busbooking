@@ -11,7 +11,9 @@ import bookingRoutes from "./src/routes/bookingRoutes.js";
 import busRoutes from "./src/routes/busRoutes.js";
 import tripRoutes from "./src/routes/tripRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
-import * as bookingController from "./src/controllers/bookingController.js";
+import jwt from "jsonwebtoken";
+import { setIO } from "./src/realtime/io.js";
+import { MAX_SEATS_PER_BOOKING } from "./src/services/bookingService.js";
 import agentRoutes from "./src/routes/agentRoutes.js";
 
 dotenv.config();
@@ -68,12 +70,37 @@ const io = new Server(server, {
   },
 });
 
-bookingController.setIO(io);
+setIO(io);
 
+// Seat locks are held in memory: { [tripId]: { [seat]: socketId } }.
+// They are temporary holds while a user picks seats; the database is still
+// the source of truth for bookings (unique tripId+seatNumber).
 const seatLocks = {};
+
+const isPositiveInt = (n) => Number.isInteger(n) && n > 0;
+
+// Anyone may connect to watch seat updates, but only logged-in users
+// can lock seats. The client sends its access token in the handshake.
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.data.userId = decoded.userId;
+    } catch {
+      // Invalid/expired token: treat as anonymous viewer.
+    }
+  }
+  next();
+});
+
+const locksHeldBy = (socketId, tripId) =>
+  Object.values(seatLocks[tripId] || {}).filter((id) => id === socketId)
+    .length;
 
 io.on("connection", (socket) => {
   socket.on("join-trip", (tripId) => {
+    if (!isPositiveInt(tripId)) return;
     socket.join(`trip-${tripId}`);
     const lockedSeats = seatLocks[tripId]
       ? Object.keys(seatLocks[tripId]).map(Number)
@@ -81,15 +108,19 @@ io.on("connection", (socket) => {
     socket.emit("sync-locked-seats", lockedSeats);
   });
 
-  socket.on("lock-seat", ({ tripId, seat }) => {
+  socket.on("lock-seat", ({ tripId, seat } = {}) => {
+    if (!socket.data.userId) return;
+    if (!isPositiveInt(tripId) || !isPositiveInt(seat)) return;
     if (!seatLocks[tripId]) seatLocks[tripId] = {};
     if (seatLocks[tripId][seat]) return;
+    if (locksHeldBy(socket.id, tripId) >= MAX_SEATS_PER_BOOKING) return;
     seatLocks[tripId][seat] = socket.id;
     io.to(`trip-${tripId}`).emit("seat-locked", { seat });
   });
 
-  socket.on("unlock-seat", ({ tripId, seat }) => {
-    if (seatLocks[tripId]?.[seat]) {
+  socket.on("unlock-seat", ({ tripId, seat } = {}) => {
+    // Only the socket that locked a seat may unlock it.
+    if (seatLocks[tripId]?.[seat] === socket.id) {
       delete seatLocks[tripId][seat];
       io.to(`trip-${tripId}`).emit("seat-unlocked", { seat });
     }
@@ -105,6 +136,7 @@ io.on("connection", (socket) => {
           });
         }
       }
+      if (Object.keys(seatLocks[tripId]).length === 0) delete seatLocks[tripId];
     }
   });
 });

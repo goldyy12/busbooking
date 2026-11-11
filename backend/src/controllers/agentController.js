@@ -1,9 +1,12 @@
 import { searchTripsCore, getTripByIdCore } from "../services/tripService.js";
-import { bookTripCore } from "../services/bookingService.js";
+import {
+  bookTripCore,
+  MAX_SEATS_PER_BOOKING,
+} from "../services/bookingService.js";
+import { emitSeatBooked } from "../realtime/io.js";
 
 const MODEL = process.env.AGENT_MODEL || "openai/gpt-oss-20b";
 const MAX_STEPS = 8;
-const MAX_SEATS_PER_BOOKING = 6;
 const TZ = "Europe/Belgrade"; // Kosovo time
 
 const getDateInfo = () => {
@@ -163,7 +166,10 @@ const executeTool = async (toolCall, { userId, safeMessages }) => {
       seats: args.seats,
       userId,
     });
-    console.log("BOOK_TRIP SUCCEEDED", result);
+    emitSeatBooked(args.tripId, {
+      requestedSeats: result.requestedSeats,
+      allBookedSeats: result.allBookedSeats,
+    });
     return result;
   }
 

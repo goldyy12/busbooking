@@ -1,11 +1,6 @@
 import prisma from "../../db.js";
 import { bookTripCore } from "../services/bookingService.js";
-
-let io;
-
-export const setIO = (ioInstance) => {
-  io = ioInstance;
-};
+import { emitSeatBooked } from "../realtime/io.js";
 
 export const getAllBookings = async (req, res, next) => {
   try {
@@ -25,7 +20,7 @@ export const getAllBookings = async (req, res, next) => {
 export const createBooking = async (req, res, next) => {
   try {
     const { tripId, seats } = req.body;
-    const userId = req.user.userId || req.user.id;
+    const userId = req.user.id;
 
     const { booking, allBookedSeats, requestedSeats } = await bookTripCore({
       tripId,
@@ -33,12 +28,7 @@ export const createBooking = async (req, res, next) => {
       userId,
     });
 
-    if (io) {
-      io.to(`trip-${tripId}`).emit("seat-booked", {
-        requestedSeats,
-        allBookedSeats,
-      });
-    }
+    emitSeatBooked(booking.tripId, { requestedSeats, allBookedSeats });
 
     res.status(201).json(booking);
   } catch (error) {
@@ -47,7 +37,10 @@ export const createBooking = async (req, res, next) => {
 };
 export const getBookingById = async (req, res, next) => {
   try {
-    const bookingId = parseInt(req.params.id);
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId)) {
+      return res.status(400).json({ error: "Invalid booking ID" });
+    }
 
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
@@ -56,7 +49,10 @@ export const getBookingById = async (req, res, next) => {
       },
     });
 
-    if (!booking) {
+    // Only the owner or an admin may see a booking. Return 404 (not 403)
+    // so other users cannot tell which booking IDs exist.
+    const isOwner = booking && booking.userId === req.user.id;
+    if (!booking || (!isOwner && req.user.role !== "ADMIN")) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
