@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Chatbot from "./Chatbot";
+import { ChatIcon, CloseIcon } from "./ChatIcons.jsx";
 import "../styles/chatbot.css";
 
 export default function ChatbotWidget() {
@@ -8,8 +9,14 @@ export default function ChatbotWidget() {
   return (
     <>
       {open && <Chatbot onClose={() => setOpen(false)} />}
-      <button className="chatbot-toggle-btn" onClick={() => setOpen(!open)}>
-        {open ? "✕" : "💬"}
+      <button
+        type="button"
+        className={`chatbot-toggle-btn${open ? " open" : ""}`}
+        onClick={() => setOpen(!open)}
+        aria-label={open ? "Close booking assistant" : "Open booking assistant"}
+        aria-expanded={open}
+      >
+        {open ? <CloseIcon width={22} height={22} /> : <ChatIcon />}
       </button>
     </>
   );
