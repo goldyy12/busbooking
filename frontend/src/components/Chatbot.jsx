@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import api from "../Api.jsx";
+import { AuthContext } from "../context/AuthContext";
 import "../styles/chatbot.css";
 
 export default function Chatbot({ onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user } = useContext(AuthContext);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    // The assistant needs a logged-in user (it can book tickets). Sending
+    // while logged out would get a 401 and redirect away from the page.
+    if (!user || !input.trim()) return;
 
     const userMessage = { role: "user", content: input };
     const updatedMessages = [...messages, userMessage];
@@ -54,22 +59,28 @@ export default function Chatbot({ onClose }) {
         )}
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSend();
-        }}
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask anything for help..."
-        />
-        <button type="submit" disabled={loading}>
-          Send
-        </button>
-      </form>
+      {!user ? (
+        <div className="chatbot-message assistant">
+          Please <Link to="/login">log in</Link> to use the booking assistant.
+        </div>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+        >
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask anything for help..."
+          />
+          <button type="submit" disabled={loading}>
+            Send
+          </button>
+        </form>
+      )}
     </div>
   );
 }
